@@ -1,46 +1,52 @@
-#!/bin/sh
+#! /bin/sh
 #
-# chkconfig: 2345 55 55
-# description: Monitors smartarray controllers.
+# cpqarrayd    Start/Stop Compaq Array monitor
 #
+# chkconfig: 345 15 90
+# description: The cpqarrayd monitors the status of Compaq Raid Arrays, \
+#              and reports via syslog or traps
+# processname: cpqarrayd
+
 # Source function library.
 . /etc/rc.d/init.d/functions
 
-# Source networking configuration.
-. /etc/sysconfig/network
+# Get config.
+if [ -f /etc/sysconfig/cpqarrayd ]; then
+        . /etc/sysconfig/cpqarrayd
+fi
 
-# Check that networking is up.
-[ ${NETWORKING} = "no" ] && exit 0
+[ -f /usr/sbin/cpqarrayd ] || exit 0
 
-[ -f @installroot@/sbin/cpqarrayd ] || exit 0
-
+RETVAL=0
 
 # See how we were called.
 case "$1" in
   start)
-        # Start daemons.
         echo -n "Starting cpqarrayd: "
-        daemon @installroot@/sbin/cpqarrayd
+        daemon /usr/sbin/cpqarrayd $CPQ_PARAMS
+        RETVAL=$?
         echo
-        touch /var/lock/subsys/cpqarrayd
+        [ $RETVAL -eq 0 ] && touch /var/lock/subsys/cpqarrayd
         ;;
   stop)
-        # Stop daemons.
-        echo -n "Shutting down cpqarrayd: "
-	killproc cpqarrayd
+        echo -n "Stopping cpqarrayd: "
+        killproc cpqarrayd
+        RETVAL=$?
         echo
-        rm -f /var/lock/subsys/cpqarrayd
+        [ $RETVAL -eq 0 ] && rm -f /var/lock/subsys/cpqarrayd
         ;;
   status)
-	status cpqarrayd
-	;;
-  restart)
-	$0 stop
-	$0 start
-	;;
+        status cpqarrayd
+        RETVAL=$?
+        ;;
+  restart|reload)
+        $0 stop
+        $0 start
+        RETVAL=$?
+        ;;
   *)
-        echo "Usage: cpqarrayd {start|stop|restart|status}"
+        echo "Usage: cpqarrayd {start|stop|status|restart|reload}"
         exit 1
 esac
 
-exit 0
+exit $RETVAL
