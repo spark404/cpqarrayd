@@ -172,8 +172,19 @@ boardid2str (unsigned long board_id, char *name)
 
   switch (board_id)
     {
-
-    case 0x0E114030:		/* SMART-2/E */
+    case 0x0040110E:		/* IDA */
+      strcpy (name, "Compaq IDA");
+      break;
+    case 0x0140110E:		/* IDA-2 */
+      strcpy (name, "Compaq IDA-2");
+      break;
+    case 0x1040110E:		/* IAES */
+      strcpy (name, "Compaq IAES");
+      break;
+    case 0x2040110E:		/* SMART */
+      strcpy (name, "Compaq SMART");
+      break;
+    case 0x3040110E:		/* SMART-2/E */
       strcpy (name, "Compaq SMART-2/E");
       break;
     case 0x40300E11:		/* SMART-2/P or SMART-2DH */
@@ -190,6 +201,18 @@ boardid2str (unsigned long board_id, char *name)
       break;
     case 0x40340E11:		/* SMART-221 */
       strcpy (name, "Compaq SMART-221");
+      break;
+    case 0x40400E11:		/* Integrated Array */
+      strcpy (name, "Compaq Integrated Array");
+      break;
+    case 0x40500E11:		/* Smart Array 4200 */
+      strcpy (name, "Compaq Smart Array 4200");
+      break;
+    case 0x40510E11:		/* Smart Array 4250ES */
+      strcpy (name, "Compaq Smart Array 4250ES");
+      break;
+    case 0x40580E11:		/* Smart Array 431 */
+      strcpy (name, "Compaq Smart Array 431");
       break;
     default:
       /*
