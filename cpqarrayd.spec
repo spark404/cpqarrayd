@@ -43,8 +43,8 @@ rm -rf $RPM_BUILD_ROOT
 
 %files
 %defattr(-,root,root)
-%doc AUTHORS COPYING ChangeLog INSTALL NEWS README TODO
-%{prefix}/bin/cpqarrayd
+%doc AUTHORS COPYING ChangeLog INSTALL NEWS README
+%{prefix}/sbin/cpqarrayd
 
 ###################################################################
 %changelog
