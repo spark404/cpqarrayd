@@ -1,0 +1,47 @@
+1999/12/27
+---------
+* Added autoconf/automake support
+* Few small bug fixes.
+* The ip in the trap is now calculated..
+* Added a do-not-fork commandline option.
+
+1999/12/20
+----------
+* Added syslog support, all events get logged to the syslog.
+* BUG: pvalue value never got updated in the memory structs.
+* Rewrote signal handlers, they no longer kill the daemon, instead
+  they set a variable which makes the while loop terminate.
+
+1999/12/07
+----------
+* Added a simple Makefile
+* Added more debug code
+* Added some memory of previous state to status funtions.
+* Status now considers an initial state != 0 an error and sends a trap.
+* Added two snmp variables to the trap: state and a description of the
+  state.
+* Also send a trap when the pvalue changes by more than 25%. This is keeps
+  you informed of the progress of rebuilding and/or expanding.
+* BUG: opts struct was not initialised with 0, giving false info on 
+  commandline arguments.
+* Most values for the snmptrap are now autodetected, the only thing left
+  is the ip of the current host.
+
+1999/12/02 
+----------
+* Wrote the discover code and made it fill memory structs when starting up.
+  (based on the discover code in array-tool)
+* The check4controllers function is obsolete and replaced by the generic
+  discover function mentioned above.
+* Added forking to the background and signal handling to kill the thing later.
+* Added snmp code using the UCD-SNMP api to send traps. Not a nice api.
+  I'm using a couple of fixed values for thing that should be detected.
+* Wrote a function to monitor the status of the controller using the info
+  provided by discover for fast scanning. 
+  (based on the status function in array-tool)
+
+1999/11/30  (tag: cpqarrayd-0_01)
+----------
+* Moved the code to CVS.
+* At this point the code contains some commandline handling and a function 
+  check4controlers to check if any controllers are available in the system.

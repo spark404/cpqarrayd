@@ -1,0 +1,17 @@
+Hi ya All!
+
+This tool can run on a linux based intel box with a smart array controller from Compaq. It reports status changes in the disks both to the syslog and to a snmp trap host.
+
+The traphost is currently configured by changing the trap sending code. Just 
+search for function sendtrap() (you need to change it at two locations) in 
+the status.c file.
+
+Questions, Comments and Bug can be reported to me, spark@knoware.nl.
+
+I really like to hear from anybody who is using this.. Please sent both 
+success and failure reports to me. 
+
+Greetings and good luck!
+
+
+Hugo

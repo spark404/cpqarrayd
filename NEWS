@@ -1,0 +1,17 @@
+02/12/1999 10:00  Spark
+-------------------------
+OK.. this is supposed to be a monitoring tool for compaq SmartArray
+controllers for Linux based platforms.
+
+07/12/1999 12:00  Spark
+-------------------------
+Things are progressing ok.. Traps can be sent to a specified host.
+
+20/17/1999 17:00  Spark
+-------------------------
+Added Syslogging
+
+27/12/1999 15:45  Spark
+-------------------------
+It's allmost functional now. I'm preparing things for an initial release.
+
