@@ -4,6 +4,7 @@
 * Few small bug fixes.
 * The ip in the trap is now calculated..
 * Added a do-not-fork commandline option.
+* Created all the textfile which automake likes to see.
 
 1999/12/20
 ----------
