@@ -32,8 +32,9 @@
 #include <cpqarray.h>
 
 #include "cpqarrayd.h"
+#include "sendtrap.h"
 
-int status_check (opts) 
+int status_check (struct opts opts) 
 {
   
   int devicefd;
@@ -42,6 +43,7 @@ int status_check (opts)
   ida_ioctl_t io, io2;
   int status, nr_blks, blks_tr;
   float pvalue;
+  char *statusmsg;
   
     
   for ( ctrl_cntr=0;
@@ -98,6 +100,10 @@ int status_check (opts)
         fprintf(stdout, statusstr[status], 
                 ctrl_cntr, logd_cntr, pvalue);
         fprintf(stdout, "\n");
+
+	statusmsg = (char *)malloc(1024);
+        sprintf(statusmsg, statusstr[status], ctrl_cntr, logd_cntr, pvalue);
+	sendtrap(opts, "starbreeze.knoware.nl", "beheer", status, statusmsg);
         
     }
     
