@@ -26,6 +26,8 @@
 struct opts 
 {
   char debug, verbose, syslog, fork;
+  char **traphosts;
+  int nr_traphosts;
 };
 
 struct slog_disk

@@ -81,11 +81,12 @@ int keeprunning = 1;
 void print_usage() 
 {
   printf("cpqarrayd [options]\n");
-  printf("   -h      prints this text\n");
-  printf("   -d      enables debugging\n");
-  printf("           disables forking to the background\n");
-  printf("   -v      gives more ouput\n");
-  printf("   -f      don't fork\n");
+  printf("   -h         prints this text\n");
+  printf("   -d         enables debugging\n");
+  printf("              disables forking to the background\n");
+  printf("   -v         gives more ouput\n");
+  printf("   -f         don't fork\n");
+  printf("   -t <host>  trap destination\n");
 }
 
 
@@ -99,7 +100,7 @@ int main(int argc, char *argv[])
 {
   char option;
   struct opts opts; /* commandline options */
-  int result;
+  int result, i;
   FILE *pidfile;
   struct sigaction myhandler;
   char *buffer;
@@ -109,7 +110,7 @@ int main(int argc, char *argv[])
   memset(&opts, 0, sizeof(struct opts));
   
   /* check options */
-  while ((option = getopt (argc, argv, "dfvhs")) != EOF)
+  while ((option = getopt (argc, argv, "dfvhst:")) != EOF)
     {
       switch (option)
         {
@@ -125,6 +126,11 @@ int main(int argc, char *argv[])
 	case 'f':
 	  opts.fork = 1;
 	  break;
+	case 't':
+	  opts.traphosts[opts.nr_traphosts] = (char *)malloc(strlen(optarg));
+          strncpy(opts.traphosts[opts.nr_traphosts], optarg, strlen(optarg));
+ 	  opts.nr_traphosts++;
+  	  break;
 	case '?':
 	case 'h':
 	  print_usage();
@@ -158,6 +164,11 @@ int main(int argc, char *argv[])
   }
   else {
     perror("gethostname");
+  }
+
+  /* test for trap destinations */
+  for (i=0; i<opts.nr_traphosts; i++) {
+    printf ("DEBUG: trap dest: %s\n", opts.traphosts[i]);
   }
 
   /* set signal handler for KILL,HUP,TERM */
