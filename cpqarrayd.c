@@ -41,6 +41,8 @@
 #include <syslog.h>
 #include <netdb.h>
 
+#include <errno.h>
+
 #include "cpqarrayd.h"
 #include "discover.h"
 #include "status.h"
@@ -200,6 +202,8 @@ int main(int argc, char *argv[])
   sigaction (SIGTERM, &myhandler, NULL);
   
   if (! opts.fork) {
+    int fd, fdnum;
+
     result = fork();
     if (result < 0) {
       perror("fork");
@@ -210,9 +214,25 @@ int main(int argc, char *argv[])
       pidfile = fopen ("/var/run/cpqarrayd.pid","w");
       fprintf (pidfile, "%d\n", result);
       fclose (pidfile);
-      
       exit(0);
     }
+    /* ADDITIONAL CODE FOR DAEMON */
+    /* become process group leader */
+    if (setsid() == -1) {
+         fprintf(stderr,"bad setsid - %s\n",strerror(errno));
+         exit(1);
+       }
+       /* if we are forked, we don't want to print out to stdout or stderr */
+       fd=open("/dev/null", O_RDWR);
+       dup2(fd, STDIN_FILENO);
+       dup2(fd, STDOUT_FILENO);
+       dup2(fd, STDERR_FILENO);
+       close(fd);
+       /* Close all unnecessary file descriptors */
+       fdnum = getdtablesize();
+       for ( fd = (STDERR_FILENO + 1); fd < fdnum; fd++ )
+         close(fd);
+       /* END OF ADDITIONAL CODE */
   }
 
   buffer = (char *)malloc(1024);
