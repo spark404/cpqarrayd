@@ -22,6 +22,8 @@ LIBS="$LIBS -L$withval/lib"
 AC_MSG_RESULT($withval)
 ,)
 
+dnl Some SNMP packages require libcrypto
+AC_CHECK_LIB(crypto, HMAC,,)
 AC_CHECK_LIB(snmp, snmp_open,,AC_MSG_ERROR(libsnmp not found))
 
 dnl Checks for header files.
