@@ -208,8 +208,8 @@ int main(int argc, char *argv[])
   }
 
   buffer = (char *)malloc(1024);
-  sprintf (buffer, "cpqarrayd[%d]\0", result);
-  openlog (buffer, LOG_CONS, LOG_USER);
+  /* sprintf (buffer, "cpqarrayd[%d]\0", getpid); */
+  openlog ("cpqarrayd", LOG_CONS, LOG_USER);
   syslog(LOG_INFO, "Logging Enabled...");
   free(buffer);
   
