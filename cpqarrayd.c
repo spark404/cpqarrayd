@@ -151,10 +151,10 @@ int main(int argc, char *argv[])
   buffer = (char *)malloc(50);
   if (gethostname(buffer, 50) == 0) {
     myhost = gethostbyname(buffer);
-    myip = (myhost->h_addr_list[0][3] << 24) +
-      (myhost->h_addr_list[0][2] << 16) +
-      (myhost->h_addr_list[0][1] << 8) +
-      (myhost->h_addr_list[0][0]);
+    myip = ((unsigned char) myhost->h_addr_list[0][3] << 24) +
+      ((unsigned char) myhost->h_addr_list[0][2] << 16) +
+      ((unsigned char) myhost->h_addr_list[0][1] << 8) +
+      ((unsigned char) myhost->h_addr_list[0][0]);
   }
   else {
     perror("gethostname");

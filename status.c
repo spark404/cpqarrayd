@@ -143,13 +143,13 @@ int status_check (struct opts opts)
 	  statusmsg = (char *)malloc(1024);
 	  sprintf(statusmsg, statusstr[status], ctrl_cntr, logd_cntr, pvalue);
 	  if (opts.debug) {
-	    printf("DEBUG: sending trap to starbreeze.knoware.nl");
+	    printf("DEBUG: sending trap to starbreeze.knoware.nl\n");
 	  }
 	  sendtrap(opts, "starbreeze.knoware.nl", "beheer", status, statusmsg);
 	  /* sendtrap(opts, "clifford.knoware.nl", "beheer", status, statusmsg);
 	   */
 	  if (opts.debug) {
-	    printf("DEBUG: trap sent to starbreeze.knoware.nl");
+	    printf("DEBUG: trap sent to starbreeze.knoware.nl\n");
 	  }
 	  ctrls_found[ctrl_cntr].log_disk[logd_cntr].pvalue = pvalue;
 	}
