@@ -29,6 +29,7 @@
 #include <string.h>
 #include <ida_ioctl.h>
 #include <signal.h>
+#include <syslog.h>
 
 #include "cpqarrayd.h"
 #include "discover.h"
@@ -68,6 +69,8 @@ extern int optind, opterr, optopt;
 int ctrls_found_num;
 struct controller ctrls_found[8];
 
+int keeprunning = 1;
+
 
 #define DEBUG(x)  fprintf(stderr, x)
 
@@ -83,12 +86,7 @@ void print_usage()
 
 void signal_handler(int signal) 
 {
-  if ((access("/var/run/cpqarrayd.pid", R_OK | F_OK)) == 0)
-    {
-      unlink("/var/run/cpqarrayd.pid");
-    }
-  printf("Signal handler fired..\n");
-  exit(0);
+  keeprunning = 0;
 }
 
 
@@ -99,11 +97,12 @@ int main(int argc, char *argv[])
   int result;
   FILE *pidfile;
   struct sigaction myhandler;
+  char *buffer;
 
   memset(&opts, 0, sizeof(struct opts));
   
   /* check options */
-  while ((option = getopt (argc, argv, "dvh")) != EOF)
+  while ((option = getopt (argc, argv, "dvhs")) != EOF)
     {
       switch (option)
         {
@@ -123,6 +122,9 @@ int main(int argc, char *argv[])
 	}
     }
   
+  buffer = (char *)malloc(1024);
+  
+
   /* Check for existance of array controllers */
   printf("Checking for controllers.. \n");
   if (! discover_controllers(opts)) {
@@ -134,6 +136,7 @@ int main(int argc, char *argv[])
   else {
     printf("Done\n");
   }
+
 
   /* set signal handler for KILL,HUP,TERM */
   memset(&myhandler, 0, sizeof (myhandler));
@@ -153,14 +156,25 @@ int main(int argc, char *argv[])
     pidfile = fopen ("/var/run/cpqarrayd.pid","w");
     fprintf (pidfile, "%d\n", result);
     fclose (pidfile);
+    sprintf (buffer, "cpqarrayd[%d]\0", result);
+    openlog (buffer, LOG_CONS, LOG_USER);
+    syslog(LOG_INFO, "Logging Enabled...");
+    free(buffer);
     exit(0);
   }
+
   
-  while (1) {
+  while (keeprunning) {
     status_check(opts);
-    sleep(30);
+    if (keeprunning) { sleep(30); }
   }
-  
+
+  if ((access("/var/run/cpqarrayd.pid", R_OK | F_OK)) == 0)
+    {
+      unlink("/var/run/cpqarrayd.pid");
+    }
+  syslog (LOG_INFO, "Application terminated by signal.");
+  closelog();
 
   return 0;   /* should return something */
 }
