@@ -74,7 +74,7 @@ int sendtrap(struct opts opts, char *peer, char *community,
   }
 
   pdu = snmp_pdu_create(SNMP_MSG_TRAP);
-  pdu->agent_addr.sin_addr.s_addr = 119816387;
+  pdu->agent_addr.sin_addr.s_addr = myip;
   pdu->enterprise = enterprise;
   pdu->enterprise_length = sizeof(enterprise) / sizeof (oid);
   pdu->trap_type = 6;
