@@ -50,6 +50,7 @@ int sendtrap(struct opts opts, char *community,
   struct snmp_session session, *ss;
   struct snmp_pdu *pdu;    
   char *statusmsg;
+  struct sockaddr_in *pduIp;
   oid enterprise[] = {1,3,6,1,4,1,300};
   oid statusoid[] = {1,3,6,1,4,1,300,1};
   oid messageoid[] = {1,3,6,1,4,1,300,2};
@@ -79,14 +80,16 @@ int sendtrap(struct opts opts, char *community,
     }
     
     pdu = snmp_pdu_create(SNMP_MSG_TRAP);
-    pdu->agent_addr.sin_addr.s_addr = myip;
+    pduIp = (struct sockaddr_in *)&pdu->agent_addr;
     pdu->enterprise = enterprise;
     pdu->enterprise_length = sizeof(enterprise) / sizeof (oid);
     pdu->trap_type = 6;
     pdu->specific_type = 1; 
     pdu->time = 0;
     
-    
+    pduIp->sin_family = AF_INET;
+    pduIp->sin_addr.s_addr = get_myaddr();
+
     statusmsg = (char *)malloc(12);
     sprintf(statusmsg, "%d", status);
     snmp_add_var (pdu, statusoid, sizeof(statusoid) / sizeof (oid), 'i', 
