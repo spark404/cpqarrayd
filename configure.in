@@ -3,6 +3,7 @@ AC_INIT(cpqarrayd.c)
 
 dnl Init automake feature
 AM_INIT_AUTOMAKE(cpqarrayd, 0.1)
+AC_PROG_MAKE_SET
 
 dnl Checks for programs.
 AC_PROG_CC
@@ -46,4 +47,7 @@ dnl Checks for library functions.
 AC_PROG_GCC_TRADITIONAL
 AC_CHECK_FUNCS(gethostname)
 
-AC_OUTPUT(Makefile)
+AC_OUTPUT([
+Makefile
+scripts/Makefile
+])

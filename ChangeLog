@@ -1,10 +1,11 @@
-1999/12/18
+1999/12/28
 ----------
 * Trap destinations are now a commandline options, default is no
   trap destination.
 * Cleaned up the spec file and modified the build system. The application
   is installed in $prefix/sbin. RPM building seems to work, now i need some
   init scripts.
+* Build some init scripts, install them as root with 'make install-redhat'.
 
 1999/12/27
 ----------

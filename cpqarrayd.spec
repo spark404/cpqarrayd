@@ -37,6 +37,7 @@ make
 
 %install
 make prefix=$RPM_BUILD_ROOT%{prefix} sysconfdir=$RPM_BUILD_ROOT%{sysconfdir}  install-strip
+make prefix=$RPM_BUILD_ROOT%{prefix} sysconfdir=$RPM_BUILD_ROOT%{sysconfdir} install-redhat
 
 %clean
 rm -rf $RPM_BUILD_ROOT
