@@ -24,12 +24,14 @@
 
 #include <unistd.h>
 #include <sys/ioctl.h>
+#include <sys/utsname.h>
 #include <stdio.h>
 #include <fcntl.h>
 #include <string.h>
 #include <ida_ioctl.h>
 #include <signal.h>
 #include <syslog.h>
+#include <netdb.h>
 
 #include "cpqarrayd.h"
 #include "discover.h"
@@ -69,6 +71,8 @@ extern int optind, opterr, optopt;
 int ctrls_found_num;
 struct controller ctrls_found[8];
 
+unsigned int myip;
+
 int keeprunning = 1;
 
 
@@ -81,6 +85,7 @@ void print_usage()
   printf("   -d      enables debugging\n");
   printf("           disables forking to the background\n");
   printf("   -v      gives more ouput\n");
+  printf("   -f      don't fork\n");
 }
 
 
@@ -98,11 +103,13 @@ int main(int argc, char *argv[])
   FILE *pidfile;
   struct sigaction myhandler;
   char *buffer;
-
+  struct hostent *myhost;
+  struct utsname *myhostname;
+  
   memset(&opts, 0, sizeof(struct opts));
   
   /* check options */
-  while ((option = getopt (argc, argv, "dvhs")) != EOF)
+  while ((option = getopt (argc, argv, "dfvhs")) != EOF)
     {
       switch (option)
         {
@@ -111,6 +118,12 @@ int main(int argc, char *argv[])
           break;
 	case 'd':
 	  opts.debug = 1;
+	  break;
+	case 's':
+	  opts.syslog = 1;
+	  break;
+	case 'f':
+	  opts.fork = 1;
 	  break;
 	case '?':
 	case 'h':
@@ -122,9 +135,6 @@ int main(int argc, char *argv[])
 	}
     }
   
-  buffer = (char *)malloc(1024);
-  
-
   /* Check for existance of array controllers */
   printf("Checking for controllers.. \n");
   if (! discover_controllers(opts)) {
@@ -137,6 +147,18 @@ int main(int argc, char *argv[])
     printf("Done\n");
   }
 
+  /* get ip of current machine for traps */
+  buffer = (char *)malloc(50);
+  if (gethostname(buffer, 50) == 0) {
+    myhost = gethostbyname(buffer);
+    myip = (myhost->h_addr_list[0][3] << 24) +
+      (myhost->h_addr_list[0][2] << 16) +
+      (myhost->h_addr_list[0][1] << 8) +
+      (myhost->h_addr_list[0][0]);
+  }
+  else {
+    perror("gethostname");
+  }
 
   /* set signal handler for KILL,HUP,TERM */
   memset(&myhandler, 0, sizeof (myhandler));
@@ -146,23 +168,27 @@ int main(int argc, char *argv[])
   sigaction (SIGHUP, &myhandler, NULL);
   sigaction (SIGTERM, &myhandler, NULL);
   
-  result = fork();
-  if (result < 0) {
-    perror("fork");
-    exit(1);
-  }
-  else if (result) {
-    printf ("Pid is %d\n", result);
-    pidfile = fopen ("/var/run/cpqarrayd.pid","w");
-    fprintf (pidfile, "%d\n", result);
-    fclose (pidfile);
-    sprintf (buffer, "cpqarrayd[%d]\0", result);
-    openlog (buffer, LOG_CONS, LOG_USER);
-    syslog(LOG_INFO, "Logging Enabled...");
-    free(buffer);
-    exit(0);
+  if (! opts.fork) {
+    result = fork();
+    if (result < 0) {
+      perror("fork");
+      exit(1);
+    }
+    else if (result) {
+      printf ("Pid is %d\n", result);
+      pidfile = fopen ("/var/run/cpqarrayd.pid","w");
+      fprintf (pidfile, "%d\n", result);
+      fclose (pidfile);
+      
+      exit(0);
+    }
   }
 
+  buffer = (char *)malloc(1024);
+  sprintf (buffer, "cpqarrayd[%d]\0", result);
+  openlog (buffer, LOG_CONS, LOG_USER);
+  syslog(LOG_INFO, "Logging Enabled...");
+  free(buffer);
   
   while (keeprunning) {
     status_check(opts);
