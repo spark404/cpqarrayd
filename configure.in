@@ -1,0 +1,46 @@
+dnl Process this file with autoconf to produce a configure script.
+AC_INIT(cpqarrayd.c)
+
+dnl Init automake feature
+AM_INIT_AUTOMAKE(cpqarrayd, 0.1)
+
+dnl Checks for programs.
+AC_PROG_CC
+
+dnl Checks for libraries.
+AC_CHECK_LIB(snmp, snmp_open)
+
+dnl Checks for header files.
+AC_HEADER_STDC
+AC_CHECK_HEADERS(fcntl.h sys/ioctl.h sys/time.h syslog.h unistd.h)
+
+dnl Checks for typedefs, structures, and compiler characteristics.
+AC_C_CONST
+
+dnl Check for pathed kernel sources with ida_ioctl.h
+AC_MSG_CHECKING(for SmartArray header directories)
+found_kernel_dir=""
+for kernel_dir in /usr/src/linux/drivers/block
+do
+  if test -d $kernel_dir ; then
+    CFLAGS="$CFLAGS -I$kernel_dir"
+    CPPFLAGS="$CPPFLAGS -I$kernel_dir"
+    found_kernel_dir="$kernel_dir"
+  fi
+done
+
+if test "$found_kernel_dir" != "" ; then
+  AC_MSG_RESULT(found $found_kernel_dir )
+else
+  AC_MSG_RESULT(not found)
+fi
+
+dnl Check Headers
+AC_CHECK_HEADERS(ida_ioctl.h ida_cmd.h cpqarray.h,, AC_MSG_ERROR(You need to have the SmartArray patch installed.))
+AC_EGREP_HEADER(blk_cnt, ida_ioctl.h,AC_MSG_RESULT(SmartArray patch version 1.0.1+ installed..), AC_MSG_ERROR(You need to have the SmartArray patch version 1.0.1+ installed.))
+
+dnl Checks for library functions.
+AC_PROG_GCC_TRADITIONAL
+AC_CHECK_FUNCS(gethostname)
+
+AC_OUTPUT(Makefile)
