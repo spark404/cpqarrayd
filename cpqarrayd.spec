@@ -13,8 +13,8 @@ Version: %{version}
 Release: %{release}
 Copyright: GPL
 Group: Applications/System
-URL: http://starbreeze.knoware.nl/compaq
-Source: ftp://starbreeze.knoware.nl/pub/hugo/cpqarrayd/cpqarrayd.tar.gz
+URL: http://starbreeze.knoware.nl/~hugo/compaq
+Source: ftp://starbreeze.knoware.nl/~hugo/compaq/downloads/cpqarrayd-1.1.tar.gz
 Requires: ucd-snmp
 Packager: Hugo Trippaers <spark@knoware.nl>
 BuildRoot: /var/tmp/%{name}-%{version}-root
@@ -37,13 +37,10 @@ make
 
 %install
 make prefix=$RPM_BUILD_ROOT%{prefix} sysconfdir=$RPM_BUILD_ROOT%{sysconfdir}  install-strip
-# this next bit fails because the makefile does not install relative to build root
-# and also tries to chkconfig
-##make prefix=$RPM_BUILD_ROOT%{prefix} sysconfdir=$RPM_BUILD_ROOT%{sysconfdir} install-redhat
 
 ## The startup file has a *nasty* requirement that /usr/local/sbin/sshd is there
 ## and fails to substitute a path correctly
-perl -i -n -e 's:\@installroot\@:%{prefix}:;print unless (m:/usr/local/sbin/sshd:)' scripts/cpqarrayd
+perl -i -p -e 's:\@installroot\@:%{prefix}:;' scripts/cpqarrayd
 
 # install the startup script manually
 mkdir -p $RPM_BUILD_ROOT/etc/rc.d/init.d/
