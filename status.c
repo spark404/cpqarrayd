@@ -122,7 +122,7 @@ int status_check (struct opts opts)
 	    printf("DEBUG: sending trap to starbreeze.knoware.nl");
 	  }
 	  sendtrap(opts, "starbreeze.knoware.nl", "beheer", status, statusmsg);
-	  sendtrap(opts, "clifford.knoware.nl", "beheer", status, statusmsg);
+	  /* sendtrap(opts, "clifford.knoware.nl", "beheer", status, statusmsg); */
 	  if (opts.debug) {
 	    printf("DEBUG: trap sent to starbreeze.knoware.nl");
 	  }
@@ -161,6 +161,7 @@ int status_check (struct opts opts)
   return 1;
  
 }
+
 
 
 
