@@ -37,16 +37,13 @@ fi
 
 dnl Check Headers
 AC_CHECK_HEADERS(ida_ioctl.h ida_cmd.h cpqarray.h,, AC_MSG_ERROR(You need to have the SmartArray patch installed.))
+
+dnl Check version of SmartArray driver
+AC_MSG_CHECKING(for SmartArray driver version)
 AC_EGREP_HEADER(blk_cnt, ida_ioctl.h,AC_MSG_RESULT(SmartArray patch version 1.0.1+ installed..), AC_MSG_ERROR(You need to have the SmartArray patch version 1.0.1+ installed.))
 
 dnl Checks for library functions.
 AC_PROG_GCC_TRADITIONAL
 AC_CHECK_FUNCS(gethostname)
-
-dnl Check for trap hosts
-AC_ARG_WITH(traphost, 
-[   --with-traphost=<host> Set this to your management station.]
-, TRAPHOST=$withval)
-
 
 AC_OUTPUT(Makefile)
