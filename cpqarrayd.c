@@ -28,6 +28,7 @@
 #include <fcntl.h>
 #include <string.h>
 #include <ida_ioctl.h>
+#include <signal.h>
 
 #include "cpqarrayd.h"
 #include "discover.h"
@@ -80,32 +81,13 @@ void print_usage()
 }
 
 
-/* true when at least one controller is found
- * false otherwise
- */
-int check4controllers(struct opts opts) 
+void signal_handler(int signal) 
 {
-  int devicefd;
-  ida_ioctl_t io;
-  int found = 0;
- 
-  /* does this device exist ? */
-  if ((access ("/dev/ida/c0d0", R_OK | F_OK)) == 0)
+  if ((access("/var/run/cpqarrayd.pid", R_OK | F_OK)) == 0)
     {
-      /* ok, now check if something is listing to ioctls */
-      devicefd = open ("/dev/ida/c0d0", O_RDONLY);
-      memset (&io, 0, sizeof (io));
-      io.cmd = ID_CTLR;
-      if (ioctl (devicefd, IDAPASSTHRU, &io) < 0)
-	{
-	  if (opts.debug) perror("ioctl");
-	}
-      else
-	{
-	  found = 1; /* first controller found, no need to check others */
-	}
+      unlink("/var/run/cpqarrayd.pid");
     }
-  return found;
+  exit(0);
 }
 
 
@@ -114,6 +96,8 @@ int main(int argc, char *argv[])
   char option;
   struct opts opts; /* commandline options */
   int result;
+  FILE *pidfile;
+  struct sigaction myhandler;
   
   /* check options */
   while ((option = getopt (argc, argv, "dvh")) != EOF)
@@ -148,6 +132,14 @@ int main(int argc, char *argv[])
     printf("Done\n");
   }
 
+  /* set signal handler for KILL,HUP,TERM */
+  memset(&myhandler, 0, sizeof (myhandler));
+  myhandler.sa_handler = signal_handler;
+
+  sigaction (SIGKILL, &myhandler, NULL);
+  sigaction (SIGHUP, &myhandler, NULL);
+  sigaction (SIGTERM, &myhandler, NULL);
+  
   result = fork();
   if (result < 0) {
     perror("fork");
@@ -155,6 +147,9 @@ int main(int argc, char *argv[])
   }
   else if (result) {
     printf ("Pid is %d\n", result);
+    pidfile = fopen ("/var/run/cpqarrayd.pid","w");
+    fprintf (pidfile, "%d\n", result);
+    fclose (pidfile);
     exit(0);
   }
   
