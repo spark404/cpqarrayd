@@ -1,13 +1,17 @@
 Author:
 -------
-Hugo Trippaers     (trippaers@knoware.nl)
+Hugo Trippaers     (spark@knoware.nl)
 
 Lots of Thanks to:
 ------------------
 Chris Frantz 
-	for writing the SmartArray driver, helping me with 
+	For writing the SmartArray driver, helping me with 
 	the darker structs of the driver code and giving usefull tips.
 
 Sjoerd van der Maaden
-	for giving me the time to do a lot of work on the program 
+	For giving me the time to do a lot of work on the program 
 	during office hours.
+
+Nigel Metheringham
+	For helping me with the specfile and the autoinstall of the redhat
+        startup script.
