@@ -1,7 +1,7 @@
 # Note that this is NOT a relocatable package
 %define name		cpqarrayd
 %define version		0.1
-%define release		1
+%define release		2
 
 # defaults for redhat
 %define prefix		/usr
@@ -15,7 +15,7 @@ Copyright: GPL
 Group: Applications/System
 URL: http://starbreeze.knoware.nl/compaq
 Source: ftp://starbreeze.knoware.nl/pub/hugo/cpqarrayd/cpqarrayd.tar.gz
-Requires: Kernel source with SmartArray support
+Requires:
 Packager: Hugo Trippaers <spark@knoware.nl>
 BuildRoot: /var/tmp/%{name}-%{version}-root
 
