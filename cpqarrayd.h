@@ -25,7 +25,7 @@
 
 struct opts 
 {
-  char debug, verbose;
+  char debug, verbose, syslog;
 };
 
 struct slog_disk
