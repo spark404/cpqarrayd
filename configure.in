@@ -43,4 +43,10 @@ dnl Checks for library functions.
 AC_PROG_GCC_TRADITIONAL
 AC_CHECK_FUNCS(gethostname)
 
+dnl Check for trap hosts
+AC_ARG_WITH(traphost, 
+[   --with-traphost=<host> Set this to your management station.]
+, TRAPHOST=$withval)
+
+
 AC_OUTPUT(Makefile)
