@@ -30,6 +30,7 @@
 #include <ida_ioctl.h>
 #include <ida_cmd.h>
 #include <cpqarray.h>
+#include <syslog.h>
 
 #include "cpqarrayd.h"
 #include "sendtrap.h"
@@ -106,6 +107,10 @@ int status_check (struct opts opts)
 	
 	if (status != ctrls_found[ctrl_cntr].log_disk[logd_cntr].status) {
 	  /* status changed, time to send a trap */
+	  syslog(LOG_WARNING, "/dev/c%dd%d: Status change.", ctrl_cntr, 
+		 logd_cntr);
+	  syslog(LOG_WARNING, statusstr[status], ctrl_cntr, logd_cntr,
+		 pvalue);
 	  if (opts.debug) {
 	    printf ("DEBUG: status changed from %d to %d, pvalue = %f\n",
 		    ctrls_found[ctrl_cntr].log_disk[logd_cntr].status, status,
@@ -126,6 +131,10 @@ int status_check (struct opts opts)
 		 ((pvalue - ctrls_found[ctrl_cntr].log_disk[logd_cntr].pvalue)
 		  >= 25.0 )) {
 	  /* pvalue changed by more than 25%, time to send a trap */
+	  syslog(LOG_WARNING, "/dev/c%dd%d: Percentile value change.", 
+		 ctrl_cntr, logd_cntr);
+	  syslog(LOG_WARNING, statusstr[status], ctrl_cntr, logd_cntr,
+		 pvalue);
 	  if (opts.debug) {
 	    printf ("DEBUG: pvalue changed from %f to %f\n",
 		    ctrls_found[ctrl_cntr].log_disk[logd_cntr].pvalue,
@@ -142,10 +151,9 @@ int status_check (struct opts opts)
 	  if (opts.debug) {
 	    printf("DEBUG: trap sent to starbreeze.knoware.nl");
 	  }
+	  ctrls_found[ctrl_cntr].log_disk[logd_cntr].pvalue = pvalue;
 	}
-        
 	ctrls_found[ctrl_cntr].log_disk[logd_cntr].status = status;
-	ctrls_found[ctrl_cntr].log_disk[logd_cntr].pvalue = pvalue;
     }
     close (devicefd);
   }
