@@ -117,10 +117,10 @@ int status_check (struct opts opts)
 	    printf("DEBUG: sending trap to starbreeze.knoware.nl");
 	  }
 	  sendtrap(opts, "starbreeze.knoware.nl", "beheer", status, statusmsg);
+	  sendtrap(opts, "clifford.knoware.nl", "beheer", status, statusmsg);
 	  if (opts.debug) {
 	    printf("DEBUG: trap sent to starbreeze.knoware.nl");
 	  }
-	  ctrls_found[ctrl_cntr].log_disk[logd_cntr].status = status;
 	}
 	else if ((status == 5) && 
 		 ((pvalue - ctrls_found[ctrl_cntr].log_disk[logd_cntr].pvalue)
@@ -137,12 +137,15 @@ int status_check (struct opts opts)
 	    printf("DEBUG: sending trap to starbreeze.knoware.nl");
 	  }
 	  sendtrap(opts, "starbreeze.knoware.nl", "beheer", status, statusmsg);
+	  /* sendtrap(opts, "clifford.knoware.nl", "beheer", status, statusmsg);
+	   */
 	  if (opts.debug) {
 	    printf("DEBUG: trap sent to starbreeze.knoware.nl");
 	  }
-	  ctrls_found[ctrl_cntr].log_disk[logd_cntr].pvalue = pvalue;
 	}
-	
+        
+	ctrls_found[ctrl_cntr].log_disk[logd_cntr].status = status;
+	ctrls_found[ctrl_cntr].log_disk[logd_cntr].pvalue = pvalue;
     }
     close (devicefd);
   }
