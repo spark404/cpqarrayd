@@ -1,7 +1,7 @@
 # Note that this is NOT a relocatable package
 %define name		cpqarrayd
-%define version		0.1
-%define release		2
+%define version		1.1
+%define release		1
 
 # defaults for redhat
 %define prefix		/usr
