@@ -28,3 +28,11 @@ struct opts
   char debug, verbose;
 };
 
+struct controller 
+{
+  char ctrl_devicename[20];
+  int num_logd_found;
+};
+
+extern int ctrls_found_num;
+extern struct controller ctrls_found[8];
