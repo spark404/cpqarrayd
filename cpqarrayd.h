@@ -25,7 +25,7 @@
 
 struct opts 
 {
-  char debug, verbose, syslog;
+  char debug, verbose, syslog, fork;
 };
 
 struct slog_disk
@@ -45,7 +45,7 @@ extern const char *statusstr[];
 extern const char *controllers[];
 extern int ctrls_found_num;
 extern struct controller ctrls_found[8];
-
+extern unsigned int myip;
 
 
 
