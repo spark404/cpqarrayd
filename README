@@ -4,6 +4,8 @@ This tool can run on a linux based intel box with a smart array controller from 
 
 The default is to only log to the syslog. You can specify traphosts with the -t parameter at the commandline. Multiple traphosts are allowed. It checks for valid input, but any errors are non-fatal, in fact the traphost is just ignored..
 
+To ensure correct opereration compile it for the same kernel that runs on the machine where you want to use this. At least make sure that the version of the SmartArray driver is the same. Strange things can happen otherwise.
+
 Questions, Comments and Bug can be reported to me, spark@knoware.nl.
 
 I really like to hear from anybody who is using this.. Please sent both 
