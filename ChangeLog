@@ -1,3 +1,19 @@
+Changes for version 1.1
+
+* Worked around the pid reporting problem in syslog,
+  i just don't log it for now.
+* New Card ID's added to the discover function. It should now 'see'
+  the same cards as the SmartArray 1.0.6 driver.
+* Fixed a bug in the sendtrap code. The pdu->agent_addr is now filled by 
+  an internal function of ucd-snmp.
+
+
+Changes before version 1.0
+
+2000/08/10
+----------
+* Release of version 1.0
+
 2000/02/11
 ----------
 * Fixed a bug in the spec file
