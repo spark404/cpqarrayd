@@ -28,14 +28,30 @@ struct opts
   char debug, verbose;
 };
 
+struct slog_disk
+{
+  int status;
+  float pvalue;
+};
+
 struct controller 
 {
   char ctrl_devicename[20];
   int num_logd_found;
+  struct slog_disk log_disk[16];
 };
+
 extern const char *statusstr[];
 extern const char *controllers[];
 extern int ctrls_found_num;
 extern struct controller ctrls_found[8];
+
+
+
+
+
+
+
+
 
 
