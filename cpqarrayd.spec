@@ -45,6 +45,7 @@ perl -i -p -e 's:\@installroot\@:%{prefix}:;' scripts/cpqarrayd
 # install the startup script manually
 mkdir -p $RPM_BUILD_ROOT/etc/rc.d/init.d/
 install scripts/cpqarrayd $RPM_BUILD_ROOT/etc/rc.d/init.d/
+install scripts/cpqarrayd.sysconfig $RPM_BUILD_ROOT/etc/sysconfig/cpqarrayd
 
 %post
 /sbin/chkconfig --add cpqarrayd
