@@ -23,4 +23,4 @@
 */
 
 
-extern int sendtrap(struct opts, char *, char *, int, char *);
+extern int sendtrap(struct opts, char *, int, char *);

@@ -44,7 +44,7 @@
 
 #include "cpqarrayd.h"
 
-int sendtrap(struct opts opts, char *peer, char *community, 
+int sendtrap(struct opts opts, char *community, 
 	     int status, char *message)
 {
   struct snmp_session session, *ss;
@@ -53,47 +53,54 @@ int sendtrap(struct opts opts, char *peer, char *community,
   oid enterprise[] = {1,3,6,1,4,1,300};
   oid statusoid[] = {1,3,6,1,4,1,300,1};
   oid messageoid[] = {1,3,6,1,4,1,300,2};
+  int counter;
 
-  memset(&session, 0, sizeof(struct snmp_session));
+  for (counter=0; counter < opts.nr_traphosts; counter++) {
+    
+    memset(&session, 0, sizeof(struct snmp_session));
+    
+    session.peername = (char *)malloc(strlen(opts.traphosts[counter]));
+    strcpy (session.peername, opts.traphosts[counter]);
+    session.community = (char *)malloc(strlen(community));
+    strcpy (session.community, community);
+    session.community_len = 6;
+    session.version = SNMP_VERSION_1;
+    session.retries = 5; 
+    session.timeout = 500;
+    session.remote_port = 162;
+    session.authenticator = NULL;
+    
+    /*  snmp_synch_setup(&session);   Whats this for ? */
+    
+    ss = snmp_open(&session);   
+    if (ss == NULL) {
+      fprintf(stderr, "Couln't open snmp!\n");
+      exit(1);
+    }
+    
+    pdu = snmp_pdu_create(SNMP_MSG_TRAP);
+    pdu->agent_addr.sin_addr.s_addr = myip;
+    pdu->enterprise = enterprise;
+    pdu->enterprise_length = sizeof(enterprise) / sizeof (oid);
+    pdu->trap_type = 6;
+    pdu->specific_type = 1; 
+    pdu->time = 0;
+    
+    
+    statusmsg = (char *)malloc(12);
+    sprintf(statusmsg, "%d", status);
+    snmp_add_var (pdu, statusoid, sizeof(statusoid) / sizeof (oid), 'i', 
+		  statusmsg);
+    snmp_add_var (pdu, messageoid, sizeof(messageoid) / sizeof (oid), 's', 
+		  message);
 
-  session.peername = peer;
-  session.community = community;
-  session.community_len = 6;
-  session.version = SNMP_VERSION_1;
-  session.retries = 5; 
-  session.timeout = 500;
-  session.remote_port = 162;
-  session.authenticator = NULL;
 
-  /*  snmp_synch_setup(&session);   Whats this for ? */
-
-  ss = snmp_open(&session);   
-  if (ss == NULL) {
-    fprintf(stderr, "Couln't open snmp!\n");
-    exit(1);
+    snmp_send(ss, pdu);
+    // snmp_perror("snmp_send");
+    snmp_close(ss);
+  
   }
-
-  pdu = snmp_pdu_create(SNMP_MSG_TRAP);
-  pdu->agent_addr.sin_addr.s_addr = myip;
-  pdu->enterprise = enterprise;
-  pdu->enterprise_length = sizeof(enterprise) / sizeof (oid);
-  pdu->trap_type = 6;
-  pdu->specific_type = 1; 
-  pdu->time = 0;
-
-
-  statusmsg = (char *)malloc(12);
-  sprintf(statusmsg, "%d", status);
-  snmp_add_var (pdu, statusoid, sizeof(statusoid) / sizeof (oid), 'i', 
-		statusmsg);
-  snmp_add_var (pdu, messageoid, sizeof(messageoid) / sizeof (oid), 's', 
-		message);
-
-
-  snmp_send(ss, pdu);
-  // snmp_perror("snmp_send");
-  snmp_close(ss);
-
+  
   return (0);
 }
 

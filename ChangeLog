@@ -1,5 +1,10 @@
+1999/12/18
+----------
+* Trap destinations are now a commandline options, default is no
+  trap destination.
+
 1999/12/27
----------
+----------
 * Added autoconf/automake support
 * Few small bug fixes.
 * The ip in the trap is now calculated..

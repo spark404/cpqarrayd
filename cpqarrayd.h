@@ -26,7 +26,7 @@
 struct opts 
 {
   char debug, verbose, syslog, fork;
-  char **traphosts;
+  char *traphosts[10];
   int nr_traphosts;
 };
 

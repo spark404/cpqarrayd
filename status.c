@@ -45,6 +45,7 @@ int status_check (struct opts opts)
   int status, nr_blks, blks_tr;
   float pvalue;
   char *statusmsg;
+  int counter;
   
     
   for ( ctrl_cntr=0;
@@ -119,13 +120,9 @@ int status_check (struct opts opts)
 	  statusmsg = (char *)malloc(1024);
 	  sprintf(statusmsg, statusstr[status], ctrl_cntr, logd_cntr, pvalue);
 	  if (opts.debug) {
-	    printf("DEBUG: sending trap to starbreeze.knoware.nl");
+	      printf("DEBUG: sending traps.\n");
 	  }
-	  sendtrap(opts, "starbreeze.knoware.nl", "beheer", status, statusmsg);
-	  /* sendtrap(opts, "clifford.knoware.nl", "beheer", status, statusmsg); */
-	  if (opts.debug) {
-	    printf("DEBUG: trap sent to starbreeze.knoware.nl");
-	  }
+	  sendtrap(opts, "beheer", status, statusmsg);
 	}
 	else if ((status == 5) && 
 		 ((pvalue - ctrls_found[ctrl_cntr].log_disk[logd_cntr].pvalue)
@@ -143,14 +140,9 @@ int status_check (struct opts opts)
 	  statusmsg = (char *)malloc(1024);
 	  sprintf(statusmsg, statusstr[status], ctrl_cntr, logd_cntr, pvalue);
 	  if (opts.debug) {
-	    printf("DEBUG: sending trap to starbreeze.knoware.nl\n");
+	      printf("DEBUG: sending traps.\n");
 	  }
-	  sendtrap(opts, "starbreeze.knoware.nl", "beheer", status, statusmsg);
-	  /* sendtrap(opts, "clifford.knoware.nl", "beheer", status, statusmsg);
-	   */
-	  if (opts.debug) {
-	    printf("DEBUG: trap sent to starbreeze.knoware.nl\n");
-	  }
+	  sendtrap(opts, "beheer", status, statusmsg);
 	  ctrls_found[ctrl_cntr].log_disk[logd_cntr].pvalue = pvalue;
 	}
 	ctrls_found[ctrl_cntr].log_disk[logd_cntr].status = status;

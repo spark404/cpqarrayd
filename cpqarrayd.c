@@ -127,9 +127,19 @@ int main(int argc, char *argv[])
 	  opts.fork = 1;
 	  break;
 	case 't':
-	  opts.traphosts[opts.nr_traphosts] = (char *)malloc(strlen(optarg));
-          strncpy(opts.traphosts[opts.nr_traphosts], optarg, strlen(optarg));
- 	  opts.nr_traphosts++;
+          if (opts.nr_traphosts < 10) {
+	    if (gethostbyname(optarg)) {
+	      opts.traphosts[opts.nr_traphosts] = (char *)malloc(strlen(optarg));
+	      strncpy(opts.traphosts[opts.nr_traphosts], optarg, strlen(optarg));
+	      opts.nr_traphosts++;
+	    }
+	    else {
+	      fprintf(stderr, "ERROR: unacceptable hostname %s: %s\n", optarg, hstrerror(h_errno));
+	    }
+	  }
+	  else {
+            fprintf(stderr, "ERROR: Not more than 10 trapdestinations can be specified");
+          }
   	  break;
 	case '?':
 	case 'h':
@@ -167,10 +177,12 @@ int main(int argc, char *argv[])
   }
 
   /* test for trap destinations */
-  for (i=0; i<opts.nr_traphosts; i++) {
-    printf ("DEBUG: trap dest: %s\n", opts.traphosts[i]);
+  if (opts.debug) {
+    for (i=0; i<opts.nr_traphosts; i++) {
+      printf ("DEBUG: trap dest: %s\n", opts.traphosts[i]);
+    }
   }
-
+  
   /* set signal handler for KILL,HUP,TERM */
   memset(&myhandler, 0, sizeof (myhandler));
   myhandler.sa_handler = signal_handler;
