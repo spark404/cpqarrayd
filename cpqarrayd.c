@@ -28,7 +28,15 @@
 #include <stdio.h>
 #include <fcntl.h>
 #include <string.h>
-#include <ida_ioctl.h>
+
+#if defined(__linux__)
+  #include <ida_ioctl.h>
+#endif
+
+#if defined(__freebsd__)
+  #include <idavar.h>
+#endif
+
 #include <signal.h>
 #include <syslog.h>
 #include <netdb.h>

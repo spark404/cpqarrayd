@@ -27,11 +27,19 @@
 #include <stdio.h>
 #include <string.h>
 #include <sys/ioctl.h>
-#include <ida_ioctl.h>
-#include <ida_cmd.h>
-#include <cpqarray.h>
+#if defined(__linux__)
+  #include <ida_ioctl.h>
+  #include <ida_ioctl.h>
+  #include <ida_cmd.h>
+  #include <cpqarray.h>
+#endif
+
+#if defined(__freebsd__)
+  #include <idavar.h>
+#endif
 
 #include "cpqarrayd.h"
+
 
 int discover_controllers (struct opts);
 int interrogate_controller (struct opts, int);
