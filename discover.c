@@ -125,6 +125,7 @@ interrogate_logical (struct opts opts, int devicefd, int unit_nr)
 {
   ida_ioctl_t io;
   ida_ioctl_t io2;
+  int nr_blks, blks_tr;
 
   if (opts.debug) printf ("DEBUG: interrogating unit %d\n", unit_nr);
 
@@ -141,16 +142,26 @@ interrogate_logical (struct opts opts, int devicefd, int unit_nr)
 
   memset (&io2, 0, sizeof (io2));
 
-  io2.cmd = SENSE_CONFIG;
+  io2.cmd = SENSE_LOG_DRV_STAT;
   io2.unit = unit_nr | UNITVALID;
 
   if (ioctl (devicefd, IDAPASSTHRU, &io2) < 0)
     {
-      perror ("FATAL: SENSE_CONFIG ioctl");
+      perror ("FATAL: SENSE_LOG_DRV_STAT ioctl");
       return 0;
     }
-
+  
   ctrls_found[ctrls_found_num].num_logd_found++;
+  /*  ctrls_found[ctrls_found_num].log_disk[unit_nr].status =
+   * io2.c.sense_log_drv_stat.status;
+
+   * nr_blks = io2.c.id_log_drv.nr_blks;
+   * blks_tr = io.c.sense_log_drv_stat.blks_to_recover;
+   * ctrls_found[ctrls_found_num].log_disk[unit_nr].pvalue =
+   *  ((float)(nr_blks - blks_tr)/(float)nr_blks) * 100;
+   */
+  ctrls_found[ctrls_found_num].log_disk[unit_nr].status = 0;
+  ctrls_found[ctrls_found_num].log_disk[unit_nr].pvalue = 0;
 
   return 1;
 }
