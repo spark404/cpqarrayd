@@ -22,19 +22,21 @@
    $Header$
 */
 
+#include <unistd.h>
+#include <fcntl.h>
+#include <stdio.h>
+#include <string.h>
+#include <sys/ioctl.h>
+#include <ida_ioctl.h>
+#include <ida_cmd.h>
+#include <cpqarray.h>
+
 #include "cpqarrayd.h"
 
-char *controllers[] =
-{
-  "/dev/ida/c0d0",
-  "/dev/ida/c1d0",
-  "/dev/ida/c2d0",
-  "/dev/ida/c3d0",
-  "/dev/ida/c4d0",
-  "/dev/ida/c5d0",
-  "/dev/ida/c6d0",
-  "/dev/ida/c7d0"
-};
+int discover_controllers (struct opts);
+int interrogate_controller (struct opts, int);
+int interrogate_logical(struct opts, int, int);
+void boardid2str (unsigned long , char *);
 
 int
 discover_controllers (struct opts opts)
@@ -48,24 +50,25 @@ discover_controllers (struct opts opts)
       if ((access (controllers[cntr], R_OK | F_OK)) == 0)
 	{
 	  /* it does :) */
-	  if (interrogate_controller (cntr))
+	  if (interrogate_controller (opts, cntr))
 	    {
 	      foundone = 1;
-	      fprintf (stderr, "DEBUG: %s is a existing controller\n",
-		       controllers[cntr]);
+	      if (opts.debug) 
+		fprintf (stderr, "DEBUG: %s is a existing controller\n",
+			 controllers[cntr]);
 	    }
 	}
-      else
+      else if (opts.debug)
 	{
-	  fprintf (stderr, "Device %s could not be opened\n", controllers[cntr]);
-	  perror ("reason");
+	  fprintf (stderr, "DEBUG: Device %s could not be opened\n", controllers[cntr]);
+	  perror ("DEBUG: reason");
 	}
     }
    return foundone;
 }
 
 int
-interrogate_controller (int contrnum)
+interrogate_controller (struct opts opts, int contrnum)
 {
   int devicefd;
   ida_ioctl_t io;
@@ -84,7 +87,7 @@ interrogate_controller (int contrnum)
 
   if (ioctl (devicefd, IDAPASSTHRU, &io) < 0)
     {
-      perror ("ioctl");
+      if (opts.debug) perror ("DEBUG: ioctl");
       return 0;
     }
 
@@ -92,15 +95,19 @@ interrogate_controller (int contrnum)
 
   strncpy (ctrls_found[ctrls_found_num].ctrl_devicename, 
 	   buffer, 20);
+
   ctrls_found[ctrls_found_num].num_logd_found = 0;
 
   for (cntr = 0; cntr < io.c.id_ctlr.nr_drvs; cntr++)
     {
-      if (interrogate_logical (ctrl_subtree, devicefd, cntr))
+      if (interrogate_logical (opts, devicefd, cntr))
 	{
 	  foundone = 1;
 	}
     }
+
+  if (opts.verbose) printf("  Found a %s (%d Logical drives)\n", buffer,
+			   ctrls_found[ctrls_found_num].num_logd_found);
 
   ctrls_found_num++;
 
@@ -114,15 +121,12 @@ interrogate_controller (int contrnum)
 }
 
 int
-interrogate_logical (GtkWidget * tree, int devicefd, int unit_nr)
+interrogate_logical (struct opts opts, int devicefd, int unit_nr)
 {
   ida_ioctl_t io;
   ida_ioctl_t io2;
 
-  char buffer[16];
-  int cntr, bus;
-
-  printf ("DEBUG: interrogating unit %d\n", unit_nr);
+  if (opts.debug) printf ("DEBUG: interrogating unit %d\n", unit_nr);
 
   memset (&io, 0, sizeof (io));
 
@@ -131,7 +135,7 @@ interrogate_logical (GtkWidget * tree, int devicefd, int unit_nr)
 
   if (ioctl (devicefd, IDAPASSTHRU, &io) < 0)
     {
-      perror ("ID_LOG_DRV ioctl");
+      perror ("FATAL: ID_LOG_DRV ioctl");
       return 0;
     }
 
@@ -142,11 +146,9 @@ interrogate_logical (GtkWidget * tree, int devicefd, int unit_nr)
 
   if (ioctl (devicefd, IDAPASSTHRU, &io2) < 0)
     {
-      perror ("SENSE_CONFIG ioctl");
+      perror ("FATAL: SENSE_CONFIG ioctl");
       return 0;
     }
-
-  sprintf (buffer, "Logical Drive %d", unit_nr);
 
   ctrls_found[ctrls_found_num].num_logd_found++;
 
@@ -186,4 +188,9 @@ boardid2str (unsigned long board_id, char *name)
       strcpy (name, "Unknown Controller Type");
     }
 }
+
+
+
+
+
 

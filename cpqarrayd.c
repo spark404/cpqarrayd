@@ -30,9 +30,43 @@
 #include <ida_ioctl.h>
 
 #include "cpqarrayd.h"
+#include "discover.h"
+#include "status.h"
+
+const char *controllers[] =
+{
+  "/dev/ida/c0d0",
+  "/dev/ida/c1d0",
+  "/dev/ida/c2d0",
+  "/dev/ida/c3d0",
+  "/dev/ida/c4d0",
+  "/dev/ida/c5d0",
+  "/dev/ida/c6d0",
+  "/dev/ida/c7d0"
+};
+
+const char *statusstr[] = {
+        "Logical drive /dev/ida/c%dd%d ok",
+        "Logical drive /dev/ida/c%dd%d failed",
+        "Logical drive /dev/ida/c%dd%d not configured",
+        "Logical drive /dev/ida/c%dd%d using interim recovery mode, %3.2f%% done",
+        "Logical drive /dev/ida/c%dd%d ready for recovery operation",
+        "Logical drive /dev/ida/c%dd%d is currently recovering, %3.2f%% done",
+        "Wrong physical drive was replaced",
+        "A physical drive is not properly connected",
+        "Hardware is overheating",
+        "Hardware has overheated",
+        "Logical drive /dev/ida/c%dd%d is currently expanding, %3.2f%% done",
+        "Logical drive /dev/ida/c%dd%d is not yet available",
+        "Logical drive /dev/ida/c%dd%d is queued for expansion",
+};
 
 extern char *optarg;
 extern int optind, opterr, optopt;
+
+int ctrls_found_num;
+struct controller ctrls_found[8];
+
 
 #define DEBUG(x)  fprintf(stderr, x)
 
@@ -79,6 +113,7 @@ int main(int argc, char *argv[])
 {
   char option;
   struct opts opts; /* commandline options */
+  int result;
   
   /* check options */
   while ((option = getopt (argc, argv, "dvh")) != EOF)
@@ -102,16 +137,32 @@ int main(int argc, char *argv[])
     }
   
   /* Check for existance of array controllers */
-  printf("Checking for controllers.. ");
-  if (! check4controllers(opts)) {
-    printf("None Found!\n");
-    fprintf(stderr, "  You don't seem to have any controllers\n");
-    fprintf(stderr, "  therefore it's rather senseless for me to run.\n");
+  printf("Checking for controllers.. \n");
+  if (! discover_controllers(opts)) {
+    printf("  None Found!\n\n");
+    fprintf(stderr, "You don't seem to have any controllers\n");
+    fprintf(stderr, "therefore it's rather senseless for me to run.\n\n");
     exit(1);
   }
   else {
-    printf("Ok\n");
+    printf("Done\n");
   }
+
+  result = fork();
+  if (result < 0) {
+    perror("fork");
+    exit(1);
+  }
+  else if (result) {
+    printf ("Pid is %d\n", result);
+    exit(0);
+  }
+  
+  while (1) {
+    status_check(opts);
+    sleep(30);
+  }
+  
 
   return 0;   /* should return something */
 }

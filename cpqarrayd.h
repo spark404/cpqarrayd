@@ -33,6 +33,9 @@ struct controller
   char ctrl_devicename[20];
   int num_logd_found;
 };
-
+extern const char *statusstr[];
+extern const char *controllers[];
 extern int ctrls_found_num;
 extern struct controller ctrls_found[8];
+
+
