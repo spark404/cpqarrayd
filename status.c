@@ -95,23 +95,63 @@ int status_check (struct opts opts)
           pvalue = 0.0;
         }
 
-        fprintf(stdout, "Status of controller %d unit %d is %d\n", 
-                ctrl_cntr, logd_cntr, status);
-        fprintf(stdout, statusstr[status], 
-                ctrl_cntr, logd_cntr, pvalue);
-        fprintf(stdout, "\n");
-
-	statusmsg = (char *)malloc(1024);
-        sprintf(statusmsg, statusstr[status], ctrl_cntr, logd_cntr, pvalue);
-	sendtrap(opts, "starbreeze.knoware.nl", "beheer", status, statusmsg);
-        
+        if (opts.debug) {
+	  fprintf(stdout, "DEBUG: Status of controller %d unit %d is %d\n", 
+		  ctrl_cntr, logd_cntr, status);
+          fprintf(stdout, "DEBUG: ");
+	  fprintf(stdout, statusstr[status], 
+		  ctrl_cntr, logd_cntr, pvalue);
+	  fprintf(stdout, "\n");
+	}
+	
+	if (status != ctrls_found[ctrl_cntr].log_disk[logd_cntr].status) {
+	  /* status changed, time to send a trap */
+	  if (opts.debug) {
+	    printf ("DEBUG: status changed from %d to %d, pvalue = %f\n",
+		    ctrls_found[ctrl_cntr].log_disk[logd_cntr].status, status,
+		    pvalue);
+	  }
+	  statusmsg = (char *)malloc(1024);
+	  sprintf(statusmsg, statusstr[status], ctrl_cntr, logd_cntr, pvalue);
+	  if (opts.debug) {
+	    printf("DEBUG: sending trap to starbreeze.knoware.nl");
+	  }
+	  sendtrap(opts, "starbreeze.knoware.nl", "beheer", status, statusmsg);
+	  if (opts.debug) {
+	    printf("DEBUG: trap sent to starbreeze.knoware.nl");
+	  }
+	  ctrls_found[ctrl_cntr].log_disk[logd_cntr].status = status;
+	}
+	else if ((status == 5) && 
+		 ((pvalue - ctrls_found[ctrl_cntr].log_disk[logd_cntr].pvalue)
+		  >= 25.0 )) {
+	  /* pvalue changed by more than 25%, time to send a trap */
+	  if (opts.debug) {
+	    printf ("DEBUG: pvalue changed from %f to %f\n",
+		    ctrls_found[ctrl_cntr].log_disk[logd_cntr].pvalue,
+		    pvalue);
+	  }
+	  statusmsg = (char *)malloc(1024);
+	  sprintf(statusmsg, statusstr[status], ctrl_cntr, logd_cntr, pvalue);
+	  if (opts.debug) {
+	    printf("DEBUG: sending trap to starbreeze.knoware.nl");
+	  }
+	  sendtrap(opts, "starbreeze.knoware.nl", "beheer", status, statusmsg);
+	  if (opts.debug) {
+	    printf("DEBUG: trap sent to starbreeze.knoware.nl");
+	  }
+	  ctrls_found[ctrl_cntr].log_disk[logd_cntr].pvalue = pvalue;
+	}
+	
     }
-    
     close (devicefd);
   }
 
   return 1;
  
 }
+
+
+
 
 
