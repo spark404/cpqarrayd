@@ -1,0 +1,41 @@
+CpqArray Daemon
+----------------
+
+developer scratch pad
+
+idea: 
+create a daemon that monitors the smartarray controller and sends alerts on events. It should also allow a remote admin to retrieve info on the status remotely by using the array-tool.
+
+design:
+
+a part takes care of monitoring the controller.
+a part takes care of sending alerts to everybody who wants to listen.
+  syslog & snmptraps preferably.
+a part takes care of remote requests and processes them.
+
+
+remote part:
+struct message {
+     _u8 version;
+     _u8 opcode;
+     _u32 datalength;
+}
+followed by datalength amount of data..
+
+open socket in listening mode
+when connected pass the socket to the handler code
+and open a new listening socket..
+(sounds like taking good care of locks of the devices e.g.)
+
+program
+
+
+fork the program to the background unless in debugmode.
+init everything that needs to be inited.
+spawn task to handle the client/server part
+mainloop
+  check the status of all controllers in the system.
+  if status change found send snmptrap (or spawn task to send trap)
+end mainloop (KILL, remote command)
+kill the socket task
+close everything.
