@@ -14,7 +14,7 @@ Release: %{release}
 Copyright: GPL
 Group: Applications/System
 URL: http://starbreeze.knoware.nl/~hugo/compaq
-Source: ftp://starbreeze.knoware.nl/~hugo/compaq/downloads/cpqarrayd-1.1.tar.gz
+Source: ftp://starbreeze.knoware.nl/~hugo/compaq/downloads/cpqarrayd-1.2.tar.gz
 Requires: ucd-snmp
 Packager: Hugo Trippaers <spark@knoware.nl>
 BuildRoot: /var/tmp/%{name}-%{version}-root
@@ -44,6 +44,7 @@ perl -i -p -e 's:\@installroot\@:%{prefix}:;' scripts/cpqarrayd
 
 # install the startup script manually
 mkdir -p $RPM_BUILD_ROOT/etc/rc.d/init.d/
+mkdir -p $RPM_BUILD_ROOT/etc/sysconfig/
 install scripts/cpqarrayd $RPM_BUILD_ROOT/etc/rc.d/init.d/
 install scripts/cpqarrayd.sysconfig $RPM_BUILD_ROOT/etc/sysconfig/cpqarrayd
 
