@@ -49,7 +49,10 @@ int sendtrap(struct opts opts, char *peer, char *community,
 {
   struct snmp_session session, *ss;
   struct snmp_pdu *pdu;    
+  char *statusmsg;
   oid enterprise[] = {1,3,6,1,4,1,300};
+  oid statusoid[] = {1,3,6,1,4,1,300,1};
+  oid messageoid[] = {1,3,6,1,4,1,300,2};
 
   memset(&session, 0, sizeof(struct snmp_session));
 
@@ -77,6 +80,15 @@ int sendtrap(struct opts opts, char *peer, char *community,
   pdu->trap_type = 6;
   pdu->specific_type = 1; 
   pdu->time = 0;
+
+
+  statusmsg = (char *)malloc(12);
+  sprintf(statusmsg, "%d", status);
+  snmp_add_var (pdu, statusoid, sizeof(statusoid) / sizeof (oid), 'i', 
+		statusmsg);
+  snmp_add_var (pdu, messageoid, sizeof(messageoid) / sizeof (oid), 's', 
+		message);
+
 
   snmp_send(ss, pdu);
   // snmp_perror("snmp_send");
