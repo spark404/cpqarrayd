@@ -87,6 +87,7 @@ void signal_handler(int signal)
     {
       unlink("/var/run/cpqarrayd.pid");
     }
+  printf("Signal handler fired..\n");
   exit(0);
 }
 
@@ -98,6 +99,8 @@ int main(int argc, char *argv[])
   int result;
   FILE *pidfile;
   struct sigaction myhandler;
+
+  memset(&opts, 0, sizeof(struct opts));
   
   /* check options */
   while ((option = getopt (argc, argv, "dvh")) != EOF)
