@@ -12,7 +12,7 @@
 # Check that networking is up.
 [ ${NETWORKING} = "no" ] && exit 0
 
-[ -f /usr/local/sbin/sshd ] || exit 0
+[ -f @installroot@/sbin/cpqarrayd ] || exit 0
 
 
 # See how we were called.
