@@ -1,6 +1,6 @@
 # Note that this is NOT a relocatable package
 %define name		cpqarrayd
-%define version		1.2
+%define version		2.0
 %define release		1
 
 # defaults for redhat
@@ -13,9 +13,9 @@ Version: %{version}
 Release: %{release}
 Copyright: GPL
 Group: Applications/System
-URL: http://starbreeze.knoware.nl/~hugo/compaq
-Source: ftp://starbreeze.knoware.nl/~hugo/compaq/downloads/cpqarrayd-1.2.tar.gz
-Requires: ucd-snmp
+URL: http://starbreeze.knoware.nl/~spark/compaq
+Source: ftp://starbreeze.knoware.nl/~spark/compaq/downloads/cpqarrayd-2.0.tar.gz
+Requires: net-snmp
 Packager: Hugo Trippaers <spark@knoware.nl>
 BuildRoot: /var/tmp/%{name}-%{version}-root
 
@@ -38,8 +38,6 @@ make
 %install
 make prefix=$RPM_BUILD_ROOT%{prefix} sysconfdir=$RPM_BUILD_ROOT%{sysconfdir}  install-strip
 
-## The startup file has a *nasty* requirement that /usr/local/sbin/sshd is there
-## and fails to substitute a path correctly
 perl -i -p -e 's:\@installroot\@:%{prefix}:;' scripts/cpqarrayd
 
 # install the startup script manually
@@ -66,6 +64,9 @@ rm -rf $RPM_BUILD_ROOT
 %doc AUTHORS COPYING ChangeLog INSTALL NEWS README
 %{prefix}/sbin/cpqarrayd
 /etc/rc.d/init.d/cpqarrayd
+/etc/sysconfig/cpqarrayd
+/usr/man/man1/cpqarrayd.1.gz
+
 ###################################################################
 %changelog
 

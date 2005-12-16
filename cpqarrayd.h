@@ -1,7 +1,7 @@
 /*
    CpqArray Deamon, a program to monitor and remotely configure a 
    SmartArray controller.
-   Copyright (C) 1999  Hugo Trippaers
+   Copyright (C) 1999-2003  Hugo Trippaers
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -22,7 +22,6 @@
    $Header$
  */
 
-
 struct opts 
 {
   char debug, verbose, syslog, fork;
@@ -36,9 +35,16 @@ struct slog_disk
   float pvalue;
 };
 
+#define MAX_CTRLS 16
+
+#define CTRLTYPE_IDA 1
+#define CTRLTYPE_CCISS 2
+
 struct controller 
 {
-  char ctrl_devicename[20];
+  char *ctrl_devicename;
+  char *devicefile;
+  unsigned int ctrl_type;
   int num_logd_found;
   struct slog_disk log_disk[16];
 };
@@ -46,7 +52,7 @@ struct controller
 extern const char *statusstr[];
 extern const char *controllers[];
 extern int ctrls_found_num;
-extern struct controller ctrls_found[8];
+extern struct controller ctrls_found[MAX_CTRLS];
 extern unsigned int myip;
 
 

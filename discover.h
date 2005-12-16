@@ -1,7 +1,7 @@
 /*
    CpqArray Deamon, a program to monitor and remotely configure a 
    SmartArray controller.
-   Copyright (C) 1999  Hugo Trippaers
+   Copyright (C) 1999-2003  Hugo Trippaers
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by

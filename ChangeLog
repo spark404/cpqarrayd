@@ -1,3 +1,18 @@
+Changes for version 2.0
+
+* Added support for monitoring CCISS controllers
+* Minor fixes
+* Updated SNMP code to work with net-snmp 5.0.x
+
+Changes for version 1.3
+
+* Added check fro libcrypto to the configure script. libcrypto is required
+  by recent versions of ucd-snmp. Reported by Nigel Metheringham and 
+  Ted Rule
+* Several snmptrap fixed. A lot more stability in the snmptrap code now.
+  Thanks to Kristoffer Gleditsch
+* Fixed version inconsistency in several source files. Reported by Ted Rule
+
 Changes for version 1.2
 
 * Included a patch from Ted Rule that improves the backgrounding of

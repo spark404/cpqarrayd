@@ -20,6 +20,11 @@
 
 /*
    $Header$
- */
+*/
 
-extern int status_check(struct opts);
+extern int cciss_get_logical_luns (int, cciss_report_logicallun_struct *);
+extern int cciss_get_event (int, int, cciss_event_type *);
+extern const char *cciss_get_logical_drive_statusstr(int );
+extern const char *cciss_get_spare_statusstr(int );
+
+extern const char *logicaldrivestatusstr[];

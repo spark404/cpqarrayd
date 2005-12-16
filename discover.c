@@ -1,7 +1,7 @@
 /*
    CpqArray Deamon, a program to monitor and remotely configure a 
    SmartArray controller.
-   Copyright (C) 1999  Hugo Trippaers
+   Copyright (C) 1999-2003  Hugo Trippaers
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -22,11 +22,17 @@
    $Header$
 */
 
+#include "config.h"
+
 #include <unistd.h>
 #include <fcntl.h>
 #include <stdio.h>
 #include <string.h>
 #include <sys/ioctl.h>
+#if defined(HAVE_LINUX_COMPILER_H)
+  #include <linux/compiler.h>
+#endif
+
 #if defined(__linux__)
   #include <ida_ioctl.h>
   #include <ida_ioctl.h>
@@ -40,11 +46,37 @@
 
 #include "cpqarrayd.h"
 
+#include <linux/cciss_ioctl.h>
+#include "cciss_structs.h"
+#include "cciss_functions.h"
+
 
 int discover_controllers (struct opts);
-int interrogate_controller (struct opts, int);
+int interrogate_controller (struct opts, const char *);
 int interrogate_logical(struct opts, int, int);
 void boardid2str (unsigned long , char *);
+
+/* Added devfs devices 
+ *  - thanks Thermoman :)
+ */
+const char *cciss_controllers[] = {
+  "/dev/cciss/c0d0",
+  "/dev/cciss/c1d0",
+  "/dev/cciss/c2d0",
+  "/dev/cciss/c3d0",
+  "/dev/cciss/c4d0",
+  "/dev/cciss/c5d0",
+  "/dev/cciss/c6d0",
+  "/dev/cciss/c7d0",
+  "/dev/cciss/host0/target0/disc",
+  "/dev/cciss/host1/target0/disc",
+  "/dev/cciss/host2/target0/disc",
+  "/dev/cciss/host3/target0/disc",
+  "/dev/cciss/host4/target0/disc",
+  "/dev/cciss/host5/target0/disc",
+  "/dev/cciss/host6/target0/disc",
+  "/dev/cciss/host7/target0/disc"
+};
 
 int
 discover_controllers (struct opts opts)
@@ -58,7 +90,7 @@ discover_controllers (struct opts opts)
       if ((access (controllers[cntr], R_OK | F_OK)) == 0)
 	{
 	  /* it does :) */
-	  if (interrogate_controller (opts, cntr))
+	  if (interrogate_controller (opts, controllers[cntr]))
 	    {
 	      foundone = 1;
 	      if (opts.debug) 
@@ -72,11 +104,31 @@ discover_controllers (struct opts opts)
 	  perror ("DEBUG: reason");
 	}
     }
+  for (cntr = 0; cntr < 16; cntr++)
+    {
+      /* does this device exist ? */
+      if ((access (cciss_controllers[cntr], R_OK | F_OK)) == 0)
+	{
+	  /* it does :) */
+	  if (cciss_interrogate_controller (opts, cciss_controllers[cntr]))
+	    {
+	      foundone = 1;
+	      if (opts.debug) 
+		fprintf (stderr, "DEBUG: %s is a existing controller\n",
+			 cciss_controllers[cntr]);
+	    }
+	}
+      else if (opts.debug)
+	{
+	  fprintf (stderr, "DEBUG: Device %s could not be opened\n", cciss_controllers[cntr]);
+	  perror ("DEBUG: reason");
+	}
+    }
    return foundone;
 }
 
 int
-interrogate_controller (struct opts opts, int contrnum)
+interrogate_controller (struct opts opts, const char *devicefile)
 {
   int devicefd;
   ida_ioctl_t io;
@@ -85,7 +137,7 @@ interrogate_controller (struct opts opts, int contrnum)
   int cntr;
  
 
-  devicefd = open (controllers[contrnum], O_RDONLY);
+  devicefd = open (devicefile, O_RDONLY);
   /* no checks, did that before */
 
   /* clear io */
@@ -101,8 +153,11 @@ interrogate_controller (struct opts opts, int contrnum)
 
   boardid2str (io.c.id_ctlr.board_id, buffer);
 
+  ctrls_found[ctrls_found_num].ctrl_devicename = (char *)malloc(strlen(buffer)+1);
   strncpy (ctrls_found[ctrls_found_num].ctrl_devicename, 
-	   buffer, 20);
+	   buffer, strlen(buffer));
+
+  ctrls_found[ctrls_found_num].ctrl_type = CTRLTYPE_IDA;
 
   ctrls_found[ctrls_found_num].num_logd_found = 0;
 
@@ -117,14 +172,13 @@ interrogate_controller (struct opts opts, int contrnum)
   if (opts.verbose) printf("  Found a %s (%d Logical drives)\n", buffer,
 			   ctrls_found[ctrls_found_num].num_logd_found);
 
+  ctrls_found[ctrls_found_num].devicefile = (char *)malloc(strlen(devicefile));
+  strcpy(ctrls_found[ctrls_found_num].devicefile, devicefile);
+
+  close (devicefd);
+
   ctrls_found_num++;
 
-  if (!foundone)
-    {
-      /* No logical Drives !  */
-    }
-
-   close (devicefd);
   return 1;
 }
 
@@ -232,7 +286,53 @@ boardid2str (unsigned long board_id, char *name)
 }
 
 
+int cciss_interrogate_controller (struct opts opts, const char *devicefile) {
+  int devicefd;
+  cciss_report_logicallun_struct logicalluns;
+  cciss_event_type event;
+  int listlength = 0;
+  int result;
+  
+  devicefd = open (devicefile, O_RDWR);
+  result = cciss_get_logical_luns(devicefd, &logicalluns);
+  if (result < 0) {
+    if (opts.debug && (result == -1)) {
+      perror ("DEBUG: ioctl");
+    }
+    return 0;
+  }
 
+  listlength |= (0xff & (unsigned int)(logicalluns.LUNlist_len[0])) << 24;
+  listlength |= (0xff & (unsigned int)(logicalluns.LUNlist_len[1])) << 16;
+  listlength |= (0xff & (unsigned int)(logicalluns.LUNlist_len[2])) << 8;
+  listlength |= (0xff & (unsigned int)(logicalluns.LUNlist_len[3]));
+  
+  ctrls_found[ctrls_found_num].ctrl_devicename = (char *)malloc(17);
+  strncpy (ctrls_found[ctrls_found_num].ctrl_devicename, 
+	   "CCISS Controller", 16);
+  ctrls_found[ctrls_found_num].ctrl_devicename[16] = 0x0;
+  ctrls_found[ctrls_found_num].devicefile = (char *)malloc(strlen(devicefile));
+  strcpy(ctrls_found[ctrls_found_num].devicefile, devicefile);
+  ctrls_found[ctrls_found_num].ctrl_type = CTRLTYPE_CCISS;
+  ctrls_found[ctrls_found_num].num_logd_found = listlength / 8;
+
+
+  if (opts.verbose) printf("  Found a CCISS Controller (%d Logical drives)\n",
+			   ctrls_found[ctrls_found_num].num_logd_found);
+
+  result = cciss_get_event(devicefd, 1, &event);
+  while (!CompareEvent(event,0,0,0)) {
+    printf ("DEBUG: Discarding old event %d/%d/%d\n",
+	    event.class.class, event.class.subclass, event.class.detail);
+    result = cciss_get_event(devicefd, 0, &event);
+  }
+
+  close (devicefd);
+
+  ctrls_found_num++;
+
+  return 1;
+}
 
 
 

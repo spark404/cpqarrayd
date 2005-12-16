@@ -1,7 +1,7 @@
 /*
    CpqArray Deamon, a program to monitor and remotely configure a 
    SmartArray controller.
-   Copyright (C) 1999  Hugo Trippaers
+   Copyright (C) 1999-2003  Hugo Trippaers
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -22,10 +22,16 @@
    $Header$
 */
 
+#include "config.h"
+
 #include <unistd.h>
 #include <fcntl.h>
 #include <stdio.h>
 #include <string.h>
+#if defined(HAVE_LINUX_COMPILER_H)
+  #include <linux/compiler.h>
+#endif
+
 #include <sys/ioctl.h>
 #include <ida_ioctl.h>
 #include <ida_cmd.h>
@@ -35,6 +41,10 @@
 #include "cpqarrayd.h"
 #include "sendtrap.h"
 
+#include <linux/cciss_ioctl.h>
+#include "cciss_structs.h"
+#include "cciss_functions.h"
+
 int status_check (struct opts opts) 
 {
   
@@ -42,7 +52,7 @@ int status_check (struct opts opts)
   int ctrl_cntr;
   int logd_cntr;
   ida_ioctl_t io, io2;
-  int status, nr_blks, blks_tr;
+  int status, nr_blks, blks_tr, trap_stat;
   float pvalue;
   char *statusmsg;
   int counter;
@@ -51,8 +61,11 @@ int status_check (struct opts opts)
   for ( ctrl_cntr=0;
         ctrl_cntr <  ctrls_found_num;
         ctrl_cntr++) {
-    
-    devicefd = open (controllers[ctrl_cntr], O_RDONLY);
+    if (ctrls_found[ctrl_cntr].ctrl_type != CTRLTYPE_IDA) {
+      break;
+    }
+
+    devicefd = open (ctrls_found[ctrl_cntr].devicefile, O_RDONLY);
     
     for ( logd_cntr=0;
           logd_cntr < ctrls_found[ctrl_cntr].num_logd_found;
@@ -122,7 +135,17 @@ int status_check (struct opts opts)
 	  if (opts.debug) {
 	      printf("DEBUG: sending traps.\n");
 	  }
-	  sendtrap(opts, "beheer", status, statusmsg);
+	  /* Send a trap, syslog if send_trap returns !0. */
+	  if (trap_stat = sendtrap(opts, "beheer", status, statusmsg)) {
+	    syslog(LOG_WARNING, 
+		   "problem sending snmp trap (sendtrap() returned %d)\n",
+		   trap_stat);
+	    if (opts.debug) {
+	      printf("DEBUG: Problem sending snmp trap",
+		     "(sendtrap() returned %d)\n", 
+		     trap_stat);
+	    }
+	  }
 	}
 	else if ((status == 5) && 
 		 ((pvalue - ctrls_found[ctrl_cntr].log_disk[logd_cntr].pvalue)
@@ -142,11 +165,99 @@ int status_check (struct opts opts)
 	  if (opts.debug) {
 	      printf("DEBUG: sending traps.\n");
 	  }
-	  sendtrap(opts, "beheer", status, statusmsg);
+	  if (trap_stat = sendtrap(opts, "beheer", status, statusmsg)) {
+	    syslog(LOG_WARNING,
+		   "problem sending snmp trap (sendtrap() returned %d)\n",
+		   trap_stat);
+	    if (opts.debug) {
+	      printf("DEBUG: Problem sending snmp trap ",
+		     "(sendtrap() returned %d)\n",
+		     trap_stat);
+	    }
+	  }
 	  ctrls_found[ctrl_cntr].log_disk[logd_cntr].pvalue = pvalue;
 	}
 	ctrls_found[ctrl_cntr].log_disk[logd_cntr].status = status;
     }
+    close (devicefd);
+  }
+
+  return 1;
+ 
+}
+
+int cciss_status_check (struct opts opts) 
+{
+  
+  int devicefd;
+  int ctrl_cntr, result;
+  int logd_cntr;
+  ida_ioctl_t io, io2;
+  int status, nr_blks, blks_tr, trap_stat;
+  float pvalue;
+  char *statusmsg;
+  int counter;
+  cciss_event_type event;
+  
+    
+  for ( ctrl_cntr=0;
+        ctrl_cntr <  ctrls_found_num;
+        ctrl_cntr++) {
+    if (ctrls_found[ctrl_cntr].ctrl_type != CTRLTYPE_CCISS) {
+      break;
+    }
+
+    devicefd = open (ctrls_found[ctrl_cntr].devicefile, O_RDONLY);
+    statusmsg = (char *)malloc(2048);
+    
+    result = cciss_get_event(devicefd, 0, &event);
+    while (!CompareEvent(event,0,0,0)) {
+      printf ("DEBUG: Got event %d/%d/%d\n",
+	      event.class.class, event.class.subclass, event.class.detail);
+      if (CompareEvent(event,5,0,0)) {
+	snprintf(statusmsg, 2048, "CCISS controler %s logical volume %d changed state to %s.",
+		 ctrls_found[ctrl_cntr].devicefile,
+		 event.detail.logstatchange.logicaldrivenumber,
+		 logicaldrivestatusstr[event.detail.logstatchange.newlogicaldrivestate]);
+	status = event.detail.logstatchange.newlogicaldrivestate;
+	syslog(LOG_WARNING, statusmsg);
+	if (opts.debug) {
+	  printf (statusmsg);
+	}
+	if (trap_stat = sendtrap(opts, "public", status, statusmsg)) {
+	  syslog(LOG_WARNING, 
+		 "problem sending snmp trap (sendtrap() returned %d)\n",
+		 trap_stat);
+	  if (opts.debug) {
+	    printf("DEBUG: Problem sending snmp trap",
+		   "(sendtrap() returned %d)\n", 
+		   trap_stat);
+	  }
+	}
+      }
+      else {
+	snprintf(statusmsg, 2048, "CCISS controler %s reported: %s.",
+		 ctrls_found[ctrl_cntr].devicefile,
+		 event.mesgstring);
+	status = 255;
+	syslog(LOG_WARNING, statusmsg);
+	if (opts.debug) {
+	  printf (statusmsg);
+	}
+	if (trap_stat = sendtrap(opts, "public", status, statusmsg)) {
+	  syslog(LOG_WARNING, 
+		 "problem sending snmp trap (sendtrap() returned %d)\n",
+		 trap_stat);
+	  if (opts.debug) {
+	    printf("DEBUG: Problem sending snmp trap",
+		   "(sendtrap() returned %d)\n", 
+		   trap_stat);
+	  }
+	}
+      }
+      result = cciss_get_event(devicefd, 0, &event);
+    }
+
     close (devicefd);
   }
 

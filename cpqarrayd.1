@@ -1,0 +1,44 @@
+.TH "CpqArrayd" "1" "2.0" "Hugo Trippaers" "Compaq Arraycontoller monitoringtools"
+.SH "NAME"
+.LP 
+cpqarrayd \- Arraycontoller monitoringdaemon
+.SH "SYNTAX"
+.LP 
+cpqarrayd [\fI\-d\fP] [\fI\-v\fP] [\fI\-t\fP host [\fI\-t\fP host]]
+
+.SH "DESCRIPTION"
+.LP 
+This program is capable op monitoring HP (Compaq) array controllers. Both the devices controller by the cpqarray driver and devices controlled by the cciss driver are supported. The program monitors the health status for each logical volume and reports if it changes. When used on a cciss controller it reports all events on the controller chain.
+
+The default is to log to the syslog facility, but the program has an option to send traps to a monitoring system.
+.SH "OPTIONS"
+.LP 
+.TP 
+\fB\-d\fR 
+Enable debug output. Combine with \-f for best effect.
+.TP 
+\fB\-f\fR
+Do not fork into the background. Only usefull for debugging.
+.TP 
+\fB\-v\fR
+More verbose output during startup.
+.TP 
+\fB\-t\fR <host>
+Specify a host that should receive traps. You can specify this option at max ten times. The host is in the format host:port. 
+
+.SH "BUGS"
+.LP 
+.TP 
+Default port is udp/161 instead of the expected udp/162. This is not really a bug, but a feature in net\-snmp version 5.0.x. 
+.SH "EXAMPLES"
+.LP 
+To run this program the standard way type:
+.LP 
+cpqarrayd \-t traphost:162
+.LP 
+To debug run it like this:
+.LP 
+cpqarrayd \-v \-f \-d \-t traphost:162
+.SH "AUTHORS"
+.LP 
+Hugo Trippaers <spark@knoware.nl>

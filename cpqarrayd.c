@@ -1,7 +1,7 @@
 /*
    CpqArray Deamon, a program to monitor and remotely configure a 
    SmartArray controller.
-   Copyright (C) 1999  Hugo Trippaers
+   Copyright (C) 1999-2003  Hugo Trippaers
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -22,12 +22,18 @@
    $Header$
  */
 
+#include "config.h"
+
 #include <unistd.h>
 #include <sys/ioctl.h>
 #include <sys/utsname.h>
 #include <stdio.h>
 #include <fcntl.h>
 #include <string.h>
+
+#if defined(HAVE_LINUX_COMPILER_H)
+  #include <linux/compiler.h>
+#endif
 
 #if defined(__linux__)
   #include <ida_ioctl.h>
@@ -79,7 +85,7 @@ extern char *optarg;
 extern int optind, opterr, optopt;
 
 int ctrls_found_num;
-struct controller ctrls_found[8];
+struct controller ctrls_found[MAX_CTRLS];
 
 unsigned int myip;
 
@@ -138,14 +144,10 @@ int main(int argc, char *argv[])
 	  break;
 	case 't':
           if (opts.nr_traphosts < 10) {
-	    if (gethostbyname(optarg)) {
-	      opts.traphosts[opts.nr_traphosts] = (char *)malloc(strlen(optarg));
-	      strncpy(opts.traphosts[opts.nr_traphosts], optarg, strlen(optarg));
-	      opts.nr_traphosts++;
-	    }
-	    else {
-	      fprintf(stderr, "ERROR: unacceptable hostname %s: %s\n", optarg, hstrerror(h_errno));
-	    }
+	    /* strlen doesn't count terminating \0. Add one to fix that. */
+	    opts.traphosts[opts.nr_traphosts] = (char *)malloc(strlen(optarg)+1);
+	    strncpy(opts.traphosts[opts.nr_traphosts], optarg, strlen(optarg)+1);
+	    opts.nr_traphosts++;
 	  }
 	  else {
             fprintf(stderr, "ERROR: Not more than 10 trapdestinations can be specified");
@@ -171,6 +173,11 @@ int main(int argc, char *argv[])
   }
   else {
     printf("Done\n");
+  }
+
+  printf ("Monitoring list\n");
+  for (i=0; i<ctrls_found_num; i++) {
+    printf (" [%2d] Controller type '%s' at %s\n",i, ctrls_found[i].ctrl_devicename,ctrls_found[i].devicefile);
   }
 
   /* get ip of current machine for traps */
@@ -243,6 +250,7 @@ int main(int argc, char *argv[])
   
   while (keeprunning) {
     status_check(opts);
+    cciss_status_check(opts);
     if (keeprunning) { sleep(30); }
   }
 

@@ -1,7 +1,7 @@
 /*
    CpqArray Deamon, a program to monitor and remotely configure a 
    SmartArray controller.
-   Copyright (C) 1999  Hugo Trippaers
+   Copyright (C) 1999-2003  Hugo Trippaers
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -21,6 +21,7 @@
 /*
    $Header$
 */
+#include "config.h"
 
 #include <stdlib.h>
 #include <unistd.h>
@@ -34,77 +35,83 @@
 #include <stdio.h>
 #include <fcntl.h>
 
-#include <ucd-snmp/ucd-snmp-config.h>
-#include <ucd-snmp/asn1.h>
-#include <ucd-snmp/mib.h>
-#include <ucd-snmp/snmp.h>
-#include <ucd-snmp/snmp_api.h>
-#include <ucd-snmp/snmp_impl.h>
-#include <ucd-snmp/snmp_client.h>
+#ifdef HAVE_SNMPTRAP
+  #include <net-snmp/net-snmp-config.h>
+  #include <net-snmp/net-snmp-includes.h>
+  #undef DEMO_USE_SNMP_VERSION_3
+#endif
+
 
 #include "cpqarrayd.h"
 
 int sendtrap(struct opts opts, char *community, 
 	     int status, char *message)
 {
+  int return_stat = 0;
+
+#ifdef HAVE_SNMPTRAP
   struct snmp_session session, *ss;
   struct snmp_pdu *pdu;    
   char *statusmsg;
-  struct sockaddr_in *pduIp;
   oid enterprise[] = {1,3,6,1,4,1,300};
   oid statusoid[] = {1,3,6,1,4,1,300,1};
   oid messageoid[] = {1,3,6,1,4,1,300,2};
   int counter;
+  char *messagebuf;
+  in_addr_t *pdu_in_addr_t;
 
+  
   for (counter=0; counter < opts.nr_traphosts; counter++) {
     
-    memset(&session, 0, sizeof(struct snmp_session));
+    snmp_sess_init( &session );
     
-    session.peername = (char *)malloc(strlen(opts.traphosts[counter]));
+    /* strlen() doesn't count the terminating \0, so we do +1 in malloc. */
+    session.peername = (char *)malloc(strlen(opts.traphosts[counter])+1);
     strcpy (session.peername, opts.traphosts[counter]);
-    session.community = (char *)malloc(strlen(community));
+    session.community = (char *)malloc(strlen(community)+1);
     strcpy (session.community, community);
-    session.community_len = 6;
+    session.community_len = strlen(session.community);
     session.version = SNMP_VERSION_1;
     session.retries = 5; 
     session.timeout = 500;
     session.remote_port = 162;
     session.authenticator = NULL;
     
-    /*  snmp_synch_setup(&session);   Whats this for ? */
-    
     ss = snmp_open(&session);   
-    if (ss == NULL) {
-      fprintf(stderr, "Couln't open snmp!\n");
-      exit(1);
+    if (!ss) {
+      snmp_sess_perror( "Error: sendtrap/snmp_open", &session );
+      return_stat++;
     }
     
     pdu = snmp_pdu_create(SNMP_MSG_TRAP);
-    pduIp = (struct sockaddr_in *)&pdu->agent_addr;
-    pdu->enterprise = enterprise;
+    pdu_in_addr_t = (struct in_addr_t *)&pdu->agent_addr;
+    pdu->enterprise = malloc(sizeof(enterprise));
+    memcpy (pdu->enterprise, enterprise, sizeof(enterprise));
     pdu->enterprise_length = sizeof(enterprise) / sizeof (oid);
     pdu->trap_type = 6;
     pdu->specific_type = 1; 
     pdu->time = 0;
-    
-    pduIp->sin_family = AF_INET;
-    pduIp->sin_addr.s_addr = get_myaddr();
+    pdu->contextEngineID = 0x0;
+    *pdu_in_addr_t = get_myaddr();
 
     statusmsg = (char *)malloc(12);
     sprintf(statusmsg, "%d", status);
+
     snmp_add_var (pdu, statusoid, sizeof(statusoid) / sizeof (oid), 'i', 
 		  statusmsg);
+    messagebuf = (char *)malloc(strlen(message)+1);
+    strcpy(messagebuf,message);
     snmp_add_var (pdu, messageoid, sizeof(messageoid) / sizeof (oid), 's', 
 		  message);
-
-
-    snmp_send(ss, pdu);
-    // snmp_perror("snmp_send");
+    
+    if (!snmp_send(ss, pdu)) {
+      snmp_sess_perror("Error: sendtrap/snmp_send", &ss );
+      return_stat++;
+    }
     snmp_close(ss);
-  
   }
-  
-  return (0);
+#endif
+  return return_stat;
 }
 
 	
