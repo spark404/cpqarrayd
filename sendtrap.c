@@ -52,7 +52,7 @@ int sendtrap(struct opts opts, char *community,
 #ifdef HAVE_SNMPTRAP
   struct snmp_session session, *ss;
   struct snmp_pdu *pdu;    
-  char *statusmsg;
+  char statusmsg[12];
   oid enterprise[] = {1,3,6,1,4,1,300};
   oid statusoid[] = {1,3,6,1,4,1,300,1};
   oid messageoid[] = {1,3,6,1,4,1,300,2};
@@ -94,7 +94,6 @@ int sendtrap(struct opts opts, char *community,
     pdu->contextEngineID = 0x0;
     *pdu_in_addr_t = get_myaddr();
 
-    statusmsg = (char *)malloc(12);
     sprintf(statusmsg, "%d", status);
 
     snmp_add_var (pdu, statusoid, sizeof(statusoid) / sizeof (oid), 'i', 

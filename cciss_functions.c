@@ -67,7 +67,7 @@ cciss_get_logical_luns (int device_fd, cciss_report_logicallun_struct * logluns)
 {
 	int result, outfile;
 	IOCTL_Command_struct iocommand;
-	unsigned char *buffer;
+	unsigned char buffer[128];
 
 	iocommand.LUN_info.LunAddrBytes[0] = 0;
 	iocommand.LUN_info.LunAddrBytes[1] = 0;
@@ -98,7 +98,6 @@ cciss_get_logical_luns (int device_fd, cciss_report_logicallun_struct * logluns)
 	iocommand.Request.CDB[10] = 0x0; /* reserved, leave 0 */
 	iocommand.Request.CDB[11] = 0x0; /* control ? */
 
-	buffer = (unsigned char *) malloc (128);
 	memset (buffer, 0x0, 128);
 	iocommand.buf_size = 128;
 	iocommand.buf = buffer;
@@ -125,7 +124,7 @@ cciss_get_event (int device_fd, int reset_pointer, cciss_event_type * event)
 {
 	int result, outfile;
 	IOCTL_Command_struct iocommand;
-	unsigned char *buffer;
+	unsigned char buffer[512];
 
 	iocommand.LUN_info.LunAddrBytes[0] = 0;
 	iocommand.LUN_info.LunAddrBytes[1] = 0;
@@ -157,7 +156,6 @@ cciss_get_event (int device_fd, int reset_pointer, cciss_event_type * event)
 	iocommand.Request.CDB[11] = 0x0;
 	iocommand.Request.CDB[12] = 0x0;
 
-	buffer = (unsigned char *) malloc (512);
 	memset (buffer, 0x0, 512);
 	iocommand.buf_size = 512;
 	iocommand.buf = buffer;

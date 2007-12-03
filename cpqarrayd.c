@@ -49,6 +49,10 @@
 
 #include <errno.h>
 
+#ifndef HOST_NAME_MAX
+#define HOST_NAME_MAX 255
+#endif
+
 #include "cpqarrayd.h"
 #include "discover.h"
 #include "status.h"
@@ -100,7 +104,7 @@ void print_usage()
   printf("   -h         prints this text\n");
   printf("   -d         enables debugging\n");
   printf("              disables forking to the background\n");
-  printf("   -v         gives more ouput\n");
+  printf("   -v         gives more output\n");
   printf("   -f         don't fork\n");
   printf("   -t <host>  trap destination\n");
 }
@@ -119,7 +123,7 @@ int main(int argc, char *argv[])
   int result, i;
   FILE *pidfile;
   struct sigaction myhandler;
-  char *buffer;
+  char buffer[1024];
   struct hostent *myhost;
   struct utsname *myhostname;
   
@@ -181,8 +185,7 @@ int main(int argc, char *argv[])
   }
 
   /* get ip of current machine for traps */
-  buffer = (char *)malloc(50);
-  if (gethostname(buffer, 50) == 0) {
+  if (gethostname(buffer, HOST_NAME_MAX) == 0) {
     myhost = gethostbyname(buffer);
     myip = ((unsigned char) myhost->h_addr_list[0][3] << 24) +
       ((unsigned char) myhost->h_addr_list[0][2] << 16) +
@@ -204,7 +207,6 @@ int main(int argc, char *argv[])
   memset(&myhandler, 0, sizeof (myhandler));
   myhandler.sa_handler = signal_handler;
 
-  sigaction (SIGKILL, &myhandler, NULL);
   sigaction (SIGHUP, &myhandler, NULL);
   sigaction (SIGTERM, &myhandler, NULL);
   
@@ -242,11 +244,9 @@ int main(int argc, char *argv[])
        /* END OF ADDITIONAL CODE */
   }
 
-  buffer = (char *)malloc(1024);
   /* sprintf (buffer, "cpqarrayd[%d]\0", getpid); */
   openlog ("cpqarrayd", LOG_CONS, LOG_USER);
   syslog(LOG_INFO, "Logging Enabled...");
-  free(buffer);
   
   while (keeprunning) {
     status_check(opts);

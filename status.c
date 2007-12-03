@@ -54,7 +54,7 @@ int status_check (struct opts opts)
   ida_ioctl_t io, io2;
   int status, nr_blks, blks_tr, trap_stat;
   float pvalue;
-  char *statusmsg;
+  char statusmsg[1024];
   int counter;
   
     
@@ -130,7 +130,6 @@ int status_check (struct opts opts)
 		    ctrls_found[ctrl_cntr].log_disk[logd_cntr].status, status,
 		    pvalue);
 	  }
-	  statusmsg = (char *)malloc(1024);
 	  sprintf(statusmsg, statusstr[status], ctrl_cntr, logd_cntr, pvalue);
 	  if (opts.debug) {
 	      printf("DEBUG: sending traps.\n");
@@ -160,7 +159,6 @@ int status_check (struct opts opts)
 		    ctrls_found[ctrl_cntr].log_disk[logd_cntr].pvalue,
 		    pvalue);
 	  }
-	  statusmsg = (char *)malloc(1024);
 	  sprintf(statusmsg, statusstr[status], ctrl_cntr, logd_cntr, pvalue);
 	  if (opts.debug) {
 	      printf("DEBUG: sending traps.\n");
@@ -195,7 +193,7 @@ int cciss_status_check (struct opts opts)
   ida_ioctl_t io, io2;
   int status, nr_blks, blks_tr, trap_stat;
   float pvalue;
-  char *statusmsg;
+  char statusmsg[1024];
   int counter;
   cciss_event_type event;
   
@@ -208,7 +206,6 @@ int cciss_status_check (struct opts opts)
     }
 
     devicefd = open (ctrls_found[ctrl_cntr].devicefile, O_RDONLY);
-    statusmsg = (char *)malloc(2048);
     
     result = cciss_get_event(devicefd, 0, &event);
     while (!CompareEvent(event,0,0,0)) {

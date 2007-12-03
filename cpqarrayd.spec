@@ -1,6 +1,6 @@
 # Note that this is NOT a relocatable package
 %define name		cpqarrayd
-%define version		2.0
+%define version		2.2
 %define release		1
 
 # defaults for redhat
@@ -13,10 +13,10 @@ Version: %{version}
 Release: %{release}
 Copyright: GPL
 Group: Applications/System
-URL: http://starbreeze.knoware.nl/~spark/compaq
-Source: ftp://starbreeze.knoware.nl/~spark/compaq/downloads/cpqarrayd-2.0.tar.gz
+URL: http://www.strocamp.net/opensource/cpqarrayd.php
+Source: http://www.strocamp.net/opensource/compaq/downloads/cpqarrayd-2.2.tar.gz
 Requires: net-snmp
-Packager: Hugo Trippaers <spark@knoware.nl>
+Packager: Hugo Trippaers <opensource@strocamp.net>
 BuildRoot: /var/tmp/%{name}-%{version}-root
 
 %description

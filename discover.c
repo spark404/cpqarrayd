@@ -155,7 +155,7 @@ interrogate_controller (struct opts opts, const char *devicefile)
 
   ctrls_found[ctrls_found_num].ctrl_devicename = (char *)malloc(strlen(buffer)+1);
   strncpy (ctrls_found[ctrls_found_num].ctrl_devicename, 
-	   buffer, strlen(buffer));
+	   buffer, strlen(buffer)+1);
 
   ctrls_found[ctrls_found_num].ctrl_type = CTRLTYPE_IDA;
 
@@ -172,7 +172,7 @@ interrogate_controller (struct opts opts, const char *devicefile)
   if (opts.verbose) printf("  Found a %s (%d Logical drives)\n", buffer,
 			   ctrls_found[ctrls_found_num].num_logd_found);
 
-  ctrls_found[ctrls_found_num].devicefile = (char *)malloc(strlen(devicefile));
+  ctrls_found[ctrls_found_num].devicefile = (char *)malloc(strlen(devicefile)+1);
   strcpy(ctrls_found[ctrls_found_num].devicefile, devicefile);
 
   close (devicefd);
@@ -307,11 +307,8 @@ int cciss_interrogate_controller (struct opts opts, const char *devicefile) {
   listlength |= (0xff & (unsigned int)(logicalluns.LUNlist_len[2])) << 8;
   listlength |= (0xff & (unsigned int)(logicalluns.LUNlist_len[3]));
   
-  ctrls_found[ctrls_found_num].ctrl_devicename = (char *)malloc(17);
-  strncpy (ctrls_found[ctrls_found_num].ctrl_devicename, 
-	   "CCISS Controller", 16);
-  ctrls_found[ctrls_found_num].ctrl_devicename[16] = 0x0;
-  ctrls_found[ctrls_found_num].devicefile = (char *)malloc(strlen(devicefile));
+  ctrls_found[ctrls_found_num].ctrl_devicename = "CCISS Controler";
+  ctrls_found[ctrls_found_num].devicefile = (char *)malloc(strlen(devicefile)+1);
   strcpy(ctrls_found[ctrls_found_num].devicefile, devicefile);
   ctrls_found[ctrls_found_num].ctrl_type = CTRLTYPE_CCISS;
   ctrls_found[ctrls_found_num].num_logd_found = listlength / 8;
