@@ -104,7 +104,7 @@ int sendtrap(struct opts opts, char *community,
 		  message);
     
     if (!snmp_send(ss, pdu)) {
-      snmp_sess_perror("Error: sendtrap/snmp_send", &ss );
+      snmp_sess_perror("Error: sendtrap/snmp_send", ss );
       return_stat++;
     }
     snmp_close(ss);
